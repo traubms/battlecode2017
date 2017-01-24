@@ -1,4 +1,4 @@
-package ihatethis;
+package battlecode2017.ihatethis;
 
 
 import battlecode.common.*;
@@ -12,7 +12,7 @@ public class RobotPlayer {
 
         public static void run(RobotController rc) throws GameActionException {
 
-            ihatethis.RobotPlayer.rc = rc;
+            RobotPlayer.rc = rc;
 
             switch (rc.getType()) {
                 case ARCHON:
