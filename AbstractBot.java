@@ -20,9 +20,7 @@ public abstract class AbstractBot {
 		this.rc = rc;
 	}
 	
-	public void run(){
-		
-	}
+	public abstract void run();
 	
 	/**random direction */
     static Direction randomDirection() throws GameActionException {
@@ -103,42 +101,9 @@ public abstract class AbstractBot {
         return false;
     }
 
-    public void waterClosestTree() throws GameActionException {
-        TreeInfo[] trees = rc.senseNearbyTrees();
-        if (trees.length > 0){
-        	waterLocation(trees[0].location);
-        }
-    }
+
     
-    /**
-     * Waters tree with lowest health
-     * @throws GameActionException
-     */
-    public boolean waterTrees() throws GameActionException {
-        TreeInfo[] trees = rc.senseNearbyTrees(GameConstants.INTERACTION_DIST_FROM_EDGE, rc.getTeam());
-        TreeInfo tree, needs_most = null;
-        double health, min_health = 1000000;
-        for(int i = 0; i < trees.length; i++){
-        	tree = trees[i];
-        	health = tree.getHealth();
-        	if (health < min_health){
-        		min_health = health;
-        		needs_most = tree;
-        	}
-        }
-        if (needs_most != null){
-        	return waterLocation(needs_most.location);
-        } else
-        	return false;
-    }
-    
-    public boolean waterLocation(MapLocation loc) throws GameActionException{
-    	if (rc.canWater(loc)) {
-            rc.water(loc);
-            return true;
-    	} else 
-    		return false;
-    }
+
 
     
 
