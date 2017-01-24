@@ -15,9 +15,13 @@ import battlecode.common.GameConstants;
 public abstract class AbstractBot {
 
 	protected RobotController rc;
+	protected Team team;
+	protected TreeReport trees;
 	
 	public AbstractBot(RobotController rc){
 		this.rc = rc;
+		this.team = rc.getTeam();
+		this.trees = new TreeReport(rc);
 	}
 	
 	public abstract void run();
@@ -149,6 +153,5 @@ public abstract class AbstractBot {
                 trySidestep(bi);
             }
         }
-
     }
 }
