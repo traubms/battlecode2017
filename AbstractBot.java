@@ -15,14 +15,16 @@ import battlecode.common.GameConstants;
 public abstract class AbstractBot {
 
 	protected RobotController rc;
+	protected Team team;
+	protected TreeReport trees;
 	
 	public AbstractBot(RobotController rc){
 		this.rc = rc;
+		this.team = rc.getTeam();
+		this.trees = new TreeReport(rc);
 	}
 	
-	public void run(){
-		
-	}
+	public abstract void run();
 	
 	/**random direction */
     static Direction randomDirection() throws GameActionException {
@@ -184,6 +186,5 @@ public abstract class AbstractBot {
                 trySidestep(bi);
             }
         }
-
     }
 }
