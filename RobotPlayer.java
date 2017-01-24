@@ -15,8 +15,6 @@ public class RobotPlayer {
 	// Run at the start of each unit's existence.
 	public static void run(RobotController rc) throws GameActionException
 	{
-		//Determine unit type.
-		RobotType myType = rc.getType();
 		AbstractBot myLogic;
 		
 		switch (rc.getType()) {
@@ -50,7 +48,11 @@ public class RobotPlayer {
 		while(true)
 		{
 			round = rc.getRoundNum();
-			myLogic.run();
+			try{
+				myLogic.run();
+			} catch (Exception e) {
+                e.printStackTrace();
+            }
 			if(round == rc.getRoundNum())
 				Clock.yield();
 		}
