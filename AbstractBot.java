@@ -13,11 +13,12 @@ import battlecode.common.TreeInfo;
 import battlecode.common.GameConstants;
 
 public abstract class AbstractBot {
+	
+	protected final float EPSILON = (float) 0.001;
 
 	protected RobotController rc;
 	protected Team team;
 	protected TreeReport trees;
-	protected final float EPSILON = (float) 0.001;
 	protected Radio radio;
 	
 	public AbstractBot(RobotController rc){
