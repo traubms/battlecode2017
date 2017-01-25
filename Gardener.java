@@ -2,7 +2,6 @@ package battlecode2017;
 
 import battlecode.common.*;
 
-import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;

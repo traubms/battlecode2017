@@ -5,9 +5,8 @@ import battlecode.common.RobotController;
 import battlecode.common.RobotInfo;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-
-import com.sun.tools.javac.util.List;
 
 import battlecode.common.Direction;
 import battlecode.common.RobotType;
@@ -15,8 +14,11 @@ import battlecode.common.Team;
 
 public class Archon extends AbstractBot {
     
+	private int scoutsMade;
+	
 	public Archon(RobotController rc) {
 		super(rc);
+		this.scoutsMade = 0;
 	}
 
 	/*
@@ -29,8 +31,7 @@ public class Archon extends AbstractBot {
     public void run() throws GameActionException {
 	    trees.update();
     	bots.update();
-		makeBuildOrders();
-    	hireGardener(); 
+		makeBuildOrders(); 
     	donateBullets2();
    }
     
@@ -71,18 +72,29 @@ public class Archon extends AbstractBot {
     public void makeBuildOrders() throws GameActionException{
         int maxGardeners = 15; 
 		int lumbers, tree, scouts, tanks, soldiers, gardeners;
-    	lumbers = (int) trees.getTreeCounts(Team.NEUTRAL) / 2;
-    	tree = (int) Math.max(Math.random() + .2, 10 - trees.getTreeCounts(this.team));
-    	gardeners = (int) Math.min(rc.getTeamBullets() / 100, maxGardeners);
-    	if (noBots(RobotType.SCOUT, this.team))
-    		scouts = 1;
-    	else
-    		scouts = 0;
+    	
+		//LumberJacks
+		lumbers = (int) trees.getTreeCounts(Team.NEUTRAL) / 2;
+    	
+		//Trees
+		tree = (int) Math.max(Math.random() + .2, 10 - trees.getTreeCounts(this.team));
+    	
+		//Gardeners
+		gardeners = (int) Math.min(rc.getTeamBullets() / 100, maxGardeners);
+		
+		//Scout
+    	scouts = 0;
+    	
+    	//Tanks
     	tanks = 0; 
-    	soldiers = (int) (bots.getBotCounts(team.opponent()) / 2);
+    	
+    	//Soldiers
+    	soldiers = 1;
+    	
     	boolean noTanks = noBots(RobotType.TANK, this.team); 
         boolean needSoldiers = getTypeCount(RobotType.SOLDIER, this.team) < soldiers; 
     	Map<Codes, Integer> orders = new HashMap<Codes, Integer>();
+    	
     	if(!needSoldiers)
     	    soldiers = 0; 
     	if(noTanks && !needSoldiers) 
@@ -95,9 +107,10 @@ public class Archon extends AbstractBot {
         orders.put(Codes.TANK, tanks);
         orders.put(Codes.LUMBERJACK, lumbers);
         orders.put(Codes.SCOUT, scouts);
-        orders.put(Codes.GARDENER, gardeners); 
     	orders.put(Codes.TREE, tree);
     	System.out.println(orders);
+    	if (gardeners > 0)
+    		hireGardener();
     	radio.makeBuildOrders(orders);
     }
     
