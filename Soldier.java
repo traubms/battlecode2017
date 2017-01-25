@@ -5,6 +5,7 @@ import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
 import battlecode.common.RobotController;
 import battlecode.common.RobotInfo;
+import java.util.List;
 
 public class Soldier extends AbstractBot {
 
@@ -38,6 +39,15 @@ public class Soldier extends AbstractBot {
 					rc.fireTriadShot(directionToShoot);
 				else
 					rc.fireSingleShot(directionToShoot);
+			}
+		}
+		else {
+			List<RobotInfo> teamBots = bots.getBots(rc.getTeam());
+			if (teamBots.size() > 0) {
+				Direction directionToFriend = myLocation.directionTo(teamBots.get(0).location);
+				if (rc.canMove(directionToFriend)) {
+					rc.move(directionToFriend, 2f);
+				}
 			}
 		}
 	}
