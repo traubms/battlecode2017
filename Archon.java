@@ -24,10 +24,15 @@ public class Archon extends AbstractBot {
 	    trees.update();
     	bots.update();
 		
-    	if(rc.senseNearbyTrees(RobotType.ARCHON.sensorRadius, Team.NEUTRAL).length > 0) { // If there's too many trees nearby w/in radius, build lumberjack
+    	if(trees.getTreeCounts(Team.NEUTRAL) > 0) { // If there's too many trees nearby w/in radius, build lumberjack
     	    hireGardener();  
     	    radio.addToBuildQueue(Codes.LUMBERJACK);
-    	}
+    	} 
+    	if(trees.getTreeCounts(this.team) < 8) { // If there's too many trees nearby w/in radius, build lumberjack
+    	    hireGardener();  
+    	    radio.addToBuildQueue(Codes.TREE);
+    	} 
+    	
     	if(this.trees.getBulletTrees().size() > 0) { // If there are bullet trees, build gardeners to make scouts. 
     	    RobotInfo closestScout = findClosestRobotOfType(RobotType.SCOUT); 
     	    if(closestScout == null) {
