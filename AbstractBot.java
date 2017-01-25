@@ -42,28 +42,6 @@ public abstract class AbstractBot {
         return tryMove(dir);
     }
     
-    
-    public Direction dirToArchon() throws GameActionException {
-        RobotInfo[] nearBots = rc.senseNearbyRobots();
-        for (RobotInfo r : nearBots) {
-            if (r.getType().equals(RobotType.ARCHON)) {
-                return r.getLocation().directionTo(rc.getLocation());
-            }
-        }
-        return randomDirection();
-    }
-
-    public boolean canSenseArchon() throws GameActionException {
-        boolean canSense = false;
-        RobotInfo[] nearBots = rc.senseNearbyRobots();
-        for (RobotInfo r : nearBots) {
-            if (r.getType().equals(RobotType.ARCHON)) {
-                canSense = true;
-                break;
-            }
-        }
-        return canSense;
-    }
 
 
     /**find intersection between two circles
