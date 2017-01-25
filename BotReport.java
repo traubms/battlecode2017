@@ -62,6 +62,11 @@ public class BotReport {
 	}
 	
 	private void reset(int length){
+		bots = new HashMap<Team, RobotInfo[]>();
+		counts = new HashMap<Team, Integer>();
+		lowestHealthValue = new HashMap<Team, Float>();
+		lowestHealthBot = new HashMap<Team, RobotInfo>();
+
 		for(Team t: Team.values()){
 			if (t != Team.NEUTRAL){
 				this.bots.put(t, new RobotInfo[length]);

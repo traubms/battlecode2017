@@ -38,7 +38,7 @@ public abstract class AbstractBot {
         Direction dir = BotUtils.randomDirection();
         return tryMove(dir);
     }
-    
+
     public boolean tryMove(Direction dir) throws GameActionException {
         return tryMove(dir,20,7);
     }
@@ -82,8 +82,6 @@ public abstract class AbstractBot {
         // A move never happened, so return false.
         return false;
     }
-
-
 
     public boolean willCollideWithMe(BulletInfo bullet) {
         MapLocation myLocation = rc.getLocation();
