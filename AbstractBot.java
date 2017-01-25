@@ -15,6 +15,8 @@ import battlecode.common.GameConstants;
 public abstract class AbstractBot {
 	
 	protected final float EPSILON = (float) 0.001;
+	protected final float TREE_WATERING_THRESHOLD = (float) 45;
+
 	protected RobotController rc;
 	protected Team team;
 	protected TreeReport trees;

@@ -19,7 +19,7 @@ public class Lumberjack extends AbstractBot {
 		List<TreeInfo> enemyCanInteract = trees.getTreesWithinInteract(team.opponent());
 		List<TreeInfo> neutralCanInteract = trees.getTreesWithinInteract(team.NEUTRAL);
 		List<TreeInfo> mineCanInteract = trees.getTreesWithinInteract(team);
-		
+
 		boolean chop = true;
 		if (mineCanInteract.size() > 0){ // if any own trees around, don't attack all
 			chop = true;

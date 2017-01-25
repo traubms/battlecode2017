@@ -10,11 +10,13 @@ public class Gardener extends AbstractBot {
 		super(rc);
 		// TODO Auto-generated constructor stub
 	}
+
 	public void run() throws GameActionException {
 	    trees.update();
 		plantTreesAndBuildSoldiers();
 	}
-	/** Checks if tree can be planted and plants there */
+
+	/** Checks if tree can be planted in a direction and plants there */
     public void plantTree(Direction dir) throws GameActionException {
     	if (rc.canPlantTree(dir)){
             rc.plantTree(dir);
@@ -39,6 +41,34 @@ public class Gardener extends AbstractBot {
 			return false;
 		}
 	}
+
+
+	public void waterAndMove() throws GameActionException {
+	    while (rc.canWater()) {
+	        waterWeakest();
+        }
+        tryMove(rc.getLocation().directionTo(trees.getWeakestTree(team).location));
+	    // may be a problem if I CAN'T water and move in the same turn
+        // TODO insert your move function here to replace the simple one above
+    }
+
+    /**decides whether or not to water the weakest tree within interacting distance
+     *
+     * @return boolean indicating whether or not a tree was watered
+     * @throws GameActionException
+     */
+	public boolean waterWeakest() throws GameActionException {
+	    TreeInfo weakest = trees.getWeakestTreeWithinInteract(team);
+        if (weakest.health <= TREE_WATERING_THRESHOLD && rc.canWater(weakest.location)) {
+            rc.water(weakest.location);
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+
 	/**a function for planting a tree at a particular map location*/
 	public void plantTree(MapLocation plantSite) throws GameActionException{
 	    if (canPlantLoc(plantSite)) {
@@ -86,7 +116,7 @@ public class Gardener extends AbstractBot {
                     tryMove(rc.getLocation().directionTo(plantSite), 30, 3);
                 }
             }
-            if (rc.canWater()) {
+            if (!((rc.getLocation().distanceTo(plantSite) - (1 + rc.getType().bodyRadius+GameConstants.GENERAL_SPAWN_OFFSET)) > EPSILON)) {
                 return false;
             } else { return true; }
         }
