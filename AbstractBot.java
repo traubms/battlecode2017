@@ -1,5 +1,7 @@
 package battlecode2017;
 
+import java.util.ArrayList;
+
 import battlecode.common.BulletInfo;
 import battlecode.common.Clock;
 import battlecode.common.Direction;
@@ -139,5 +141,15 @@ public abstract class AbstractBot {
                 trySidestep(bi);
             }
         }
+    }
+    
+    public boolean shake() throws GameActionException {
+    	ArrayList<TreeInfo> bullets = trees.getBulletTrees();
+    	if (bullets.size() > 0 && rc.canShake(bullets.get(0).ID)){
+    		rc.shake(bullets.get(0).ID);
+    		return true;
+    	} else {
+    		return false;
+    	}
     }
 }

@@ -3,6 +3,7 @@ package battlecode2017;
 import java.util.List;
 
 import battlecode.common.GameActionException;
+import battlecode.common.MapLocation;
 import battlecode.common.RobotController;
 import battlecode.common.RobotType;
 import battlecode.common.Team;
@@ -49,14 +50,20 @@ public class Lumberjack extends AbstractBot {
 		} 
 		
 		// Move
+		MapLocation goal = null;
 		if (enemiesCount > 0){ // move to opponent
-			this.tryMove(rc.getLocation().directionTo(bots.getClosestbot(team.opponent()).location));
+			goal = bots.getClosestbot(team.opponent()).location;
 		} else if (enemiesTreeCount > 0){ // move to enemy tree
-			this.tryMove(rc.getLocation().directionTo(trees.getClosestTree(team.opponent()).location));
+			goal = trees.getClosestTree(team.opponent()).location;
 		} else if (neutralTreeCount > 0){ // move to neutral tree
-			this.tryMove(rc.getLocation().directionTo(trees.getClosestTree(Team.NEUTRAL).location));
-		} else {
+			goal = trees.getClosestTree(Team.NEUTRAL).location;
+		} 
+		
+		
+		if (goal == null) {
 			wander();
+		} else if(!rc.getLocation().isWithinDistance(goal, (float) 2.4)){
+			this.tryMove(rc.getLocation().directionTo(goal));
 		}
 
     }

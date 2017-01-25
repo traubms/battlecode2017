@@ -13,6 +13,9 @@ public class Gardener extends AbstractBot {
 
 	public void run() throws GameActionException {
 	    trees.update();
+	    int bc = Clock.getBytecodeNum();
+	    followBuildCommands();
+	    System.out.println(Clock.getBytecodeNum() - bc);
 		plantTreesAndBuildSoldiers();
 	}
 
@@ -22,7 +25,28 @@ public class Gardener extends AbstractBot {
             rc.plantTree(dir);
     	}
     }
-
+    
+    public void followBuildCommands() throws GameActionException{
+    	Map<Codes, Integer> orders = radio.checkBuildOrders();
+    	for(Codes code: orders.keySet()){
+    		if(orders.get(code) > 0){
+    			if (build(code.getRobotType())){
+    				radio.reportBuild(code);
+    				break;
+    			}
+    		}
+    	}
+    }
+    public boolean build(RobotType robotType) throws GameActionException{
+	    Direction tryBuildDir = BotUtils.randomDirection();
+		for (int i = 0; i < 8; i++) {
+			tryBuildDir = tryBuildDir.rotateLeftDegrees((float) (360. / 8));
+			if (build(tryBuildDir, robotType)){ // if build successful, break and return true
+				return true;
+			}
+		}
+		return false; // build not successful, so return false
+    }
 
 	public boolean waterLocation(MapLocation loc) throws GameActionException{
 		if (rc.canWater(loc)) {
