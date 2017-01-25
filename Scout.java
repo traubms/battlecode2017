@@ -15,8 +15,13 @@ public class Scout extends AbstractBot {
 	
 	public void run() throws GameActionException {
 		trees.update();
+
+		if (rc.senseNearbyBullets().length > 0) { //try dodging bullets as a first priority
+			dodge();
+		}
+
 		ArrayList<TreeInfo> bulletTrees = trees.getBulletTrees();
-		if (bulletTrees.size() > 0){
+		if (bulletTrees.size() > 0){ //if no dodge was attempted, then seek out neutral bullet trees
 			if(!shake()){
 				this.tryMove(rc.getLocation().directionTo(bulletTrees.get(0).location));
 			}
@@ -24,5 +29,4 @@ public class Scout extends AbstractBot {
 			wander();
 		}
 	}
-
 }
