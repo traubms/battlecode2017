@@ -20,10 +20,14 @@ public class Gardener extends AbstractBot {
 		plantTreesAndBuildSoldiers();
 	}
 
-	/** Checks if tree can be planted in a direction and plants there */
-    public void plantTree(Direction dir) throws GameActionException {
+	/** Checks if tree can be planted in a direction and plants there 
+	 * @return */
+    public boolean plantTree(Direction dir) throws GameActionException {
     	if (rc.canPlantTree(dir)){
             rc.plantTree(dir);
+            return true;
+    	} else {
+    		return false;
     	}
     }
     
@@ -31,18 +35,38 @@ public class Gardener extends AbstractBot {
     	Map<Codes, Integer> orders = radio.checkBuildOrders();
     	for(Codes code: orders.keySet()){
     		if(orders.get(code) > 0){
-    			if (build(code.getRobotType())){
+    			if (build(code)){
     				radio.reportBuild(code);
     				break;
     			}
     		}
     	}
     }
+    
+    public boolean build(Codes code) throws GameActionException{
+    	if (code == Codes.TREE){
+    		return plantTree();
+    	} else {
+    		return build(code.getRobotType());
+    	}
+    }
+    
     public boolean build(RobotType robotType) throws GameActionException{
 	    Direction tryBuildDir = BotUtils.randomDirection();
 		for (int i = 0; i < 8; i++) {
 			tryBuildDir = tryBuildDir.rotateLeftDegrees((float) (360. / 8));
 			if (build(tryBuildDir, robotType)){ // if build successful, break and return true
+				return true;
+			}
+		}
+		return false; // build not successful, so return false
+    }
+    
+    public boolean plantTree() throws GameActionException{
+	    Direction tryPlantDir = BotUtils.randomDirection();
+		for (int i = 0; i < 8; i++) {
+			tryPlantDir = tryPlantDir.rotateLeftDegrees((float) (360. / 8));
+			if (this.plantTree(tryPlantDir)){ // if build successful, break and return true
 				return true;
 			}
 		}
