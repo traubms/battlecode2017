@@ -60,10 +60,9 @@ public class Gardener extends AbstractBot {
 	public void plantTreesAndBuildSoldiers() throws GameActionException {
 
 		// sense the archon
-		Team team = rc.getTeam();
-		RobotInfo[] robotInfos = rc.senseNearbyRobots(-1, team);
+		bots.update();
 		Direction directionToMove = null;
-		for (RobotInfo robotInfo : robotInfos) {
+		for (RobotInfo robotInfo : bots.getBots(team)) {
 			if (robotInfo.getType().equals(RobotType.ARCHON)) {
 				Direction directionToArchon = rc.getLocation().directionTo(robotInfo.location);
 				directionToMove = directionToArchon.opposite();
