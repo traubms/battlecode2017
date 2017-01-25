@@ -14,10 +14,11 @@ public class Gardener extends AbstractBot {
 	public void run() throws GameActionException {
 	    trees.update();
 	    dodge();
-	    int bc = Clock.getBytecodeNum();
-	    followBuildCommands();
-	    System.out.println(Clock.getBytecodeNum() - bc);
+	    //int bc = Clock.getBytecodeNum();
+	    //followBuildCommands();
+	    //System.out.println(Clock.getBytecodeNum() - bc);
 		plantTreesAndBuildSoldiers();
+		waterWeakest();
 	}
 
 	/** Checks if tree can be planted in a direction and plants there 
@@ -241,15 +242,15 @@ public class Gardener extends AbstractBot {
 
 		Direction directionToBuild = directionToMove;
 		if (rc.canBuildRobot(RobotType.SOLDIER, directionToBuild)) {
-			rc.buildRobot(RobotType.SOLDIER, directionToBuild);
-		}
+				rc.buildRobot(RobotType.SOLDIER, directionToBuild);
+			}
 
 		if (rc.canPlantTree(directionToBuild)) {
 			rc.plantTree(directionToBuild);
 		}
 
 		float radiansToBuild = directionToBuild.getAngleDegrees() + ((float) Math.PI / 3);
-		float step = (float) Math.PI / 3;
+		float step = ((float) Math.PI/ 3);
 		for (float radians = radiansToBuild; radians < 2 * (float) Math.PI + radiansToBuild; radians = radians + step) {
 			Direction directionToPlant = new Direction(radians);
 			if (rc.canPlantTree(directionToPlant)) {
