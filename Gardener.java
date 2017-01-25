@@ -114,42 +114,52 @@ public class Gardener extends AbstractBot {
 		} else {return false;}
 	}
 
+	public MapLocation[] possiblePositionsForPlanting(MapLocation myLoc, MapLocation plantSite) throws GameActionException{
+		MapLocation[] intPoints = BotUtils.findCircleIntersections(rc.getLocation(), plantSite, rc.getType().bodyRadius, (float) 1);
+        MapLocation nearPoint = plantSite.add(plantSite.directionTo(rc.getLocation()), (float) 1 + GameConstants.GENERAL_SPAWN_OFFSET + rc.getType().strideRadius);
+        MapLocation[] result = new MapLocation[1 + intPoints.length];
+        result[0] = nearPoint;
+        MapLocation iP;
+        for(int i = 0; i < intPoints.length; i++){
+        	iP = intPoints[i];
+        	result[i+1] = iP.add(iP.directionTo(rc.getLocation()), rc.getType().bodyRadius);
+        }
+        return result;
+        
+	}
+	
 	/**Moves to position to plant
      * @param plantSite : location that the tree should be (the center of the tree)
-     * @return true if we made progress or are there, else return false
+     * @return true if we moved
      * @throws GameActionException
      * */
 	public boolean moveToPlant(MapLocation plantSite) throws GameActionException{
-        if (((rc.getLocation().distanceTo(plantSite) - (1 + rc.getType().bodyRadius+GameConstants.GENERAL_SPAWN_OFFSET)) > EPSILON)) {
-            if (rc.getLocation().distanceTo(plantSite) > (rc.getType().bodyRadius+(float)1+rc.getType().strideRadius+GameConstants.GENERAL_SPAWN_OFFSET)) {
-                tryMove(rc.getLocation().directionTo(plantSite));
-            } else {
-                MapLocation[] intPoints = BotUtils.findCircleIntersections(rc.getLocation(), plantSite, rc.getType().bodyRadius, (float) 1);
-                MapLocation nearPoint = plantSite.add(plantSite.directionTo(rc.getLocation()), (float) 1 + GameConstants.GENERAL_SPAWN_OFFSET + rc.getType().strideRadius);
-                boolean hasMoved = false;
-                if (rc.canMove(nearPoint)) {
-                    rc.move(nearPoint);
+		// include bot radius and plant offset to find goal distance from plantSite
+		float goalDist = 1 + rc.getType().bodyRadius + GameConstants.GENERAL_SPAWN_OFFSET;
+        
+		// return True if within epsilon
+		if ((rc.getLocation().distanceTo(plantSite) - goalDist <= EPSILON)) 
+        	return true;
+		
+		// if outside stride, take big step toward goal, else move into position
+		boolean hasMoved = false;
+        if (rc.getLocation().distanceTo(plantSite) > goalDist + rc.getType().strideRadius) {
+            hasMoved = tryMove(rc.getLocation().directionTo(plantSite));
+        } else {
+            MapLocation[] intPoints = possiblePositionsForPlanting(rc.getLocation(), plantSite);
+        	for (MapLocation iP : intPoints) {
+                if (rc.canMove(iP)) {
+                    rc.move(iP);
                     hasMoved = true;
-                } else {
-
-                    for (MapLocation iP : intPoints) {
-                        MapLocation To = iP.add(iP.directionTo(rc.getLocation()), rc.getType().bodyRadius);
-                        if (rc.canMove(To)) {
-                            rc.move(To);
-                            hasMoved = true;
-                            break;
-                        }
-                    }
-                }
-                if (!hasMoved) {
-                    tryMove(rc.getLocation().directionTo(plantSite), 30, 3);
+                    break;
                 }
             }
-            if (!((rc.getLocation().distanceTo(plantSite) - (1 + rc.getType().bodyRadius+GameConstants.GENERAL_SPAWN_OFFSET)) > EPSILON)) {
-                return false;
-            } else { return true; }
         }
-        return true;
+        // if it doesn't work, move to side
+        if (!hasMoved) 
+            return tryMove(rc.getLocation().directionTo(plantSite), 30, 3);
+        else
+        	return hasMoved; // always True
     }
 
 	/**
