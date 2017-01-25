@@ -13,7 +13,7 @@ public class Soldier extends AbstractBot {
 		System.out.println("soldier");
 	}
 
-	static void runSoldier() throws GameActionException {
+	public void runSoldier() throws GameActionException {
 		while (true) {
 			try {
 				RobotInfo[] robotInfo = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
