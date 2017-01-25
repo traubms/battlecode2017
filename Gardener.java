@@ -14,16 +14,8 @@ public class Gardener extends AbstractBot {
 	public void run() throws GameActionException {
 	    trees.update();
 	    dodge();
-<<<<<<< HEAD
 	    waterAndMove();
 	    followBuildCommands();
-=======
-	    //int bc = Clock.getBytecodeNum();
-	    //followBuildCommands();
-	    //System.out.println(Clock.getBytecodeNum() - bc);
-		plantTreesAndBuildSoldiers();
-		waterWeakest();
->>>>>>> bdbc7440af679bfe557a37ab6f6783a669aecfa5
 	}
 
 	/** Checks if tree can be planted in a direction and plants there 
