@@ -224,13 +224,16 @@ public class Gardener extends AbstractBot {
 	 * 
 	 * */
 	public boolean plantTree(MapLocation plantSite) throws GameActionException{
+		Direction dirToPlant = rc.getLocation().directionTo(plantSite);
 	    if (canPlantLoc(plantSite)) {
-	        rc.plantTree(rc.getLocation().directionTo(plantSite));
+	        rc.plantTree(dirToPlant);
 	        return true;
         }
 	    else { //can implement return from moveToPlant to determine whether or not moving there is possible at all
 	    	System.out.println("moving to plant...");
-	    	moveToPlant(plantSite);
+	    	if(!moveToPlant(plantSite)){ // try to move around a little
+	    		wander();
+	    	}
 			return false;
 	    } 
     }
