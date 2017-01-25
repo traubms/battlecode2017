@@ -9,7 +9,6 @@ public class Scout extends AbstractBot {
 		// TODO Auto-generated constructor stub
 	}
 	public void run() {
-		System.out.println("scout");
 	}
 
 }

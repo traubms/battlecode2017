@@ -12,9 +12,10 @@ public class Archon extends AbstractBot {
 		// TODO Auto-generated constructor stub
 	}
 
-    public void run() {
-	    trees.update();
+    public void run() throws GameActionException {
+    	tryPlantGardener();
     }
+    
 	/**build Gardener in given direction d
 	 * @param d : direction in which to place thing
 	 *          @return boolean as to whether or not it built one
@@ -33,8 +34,9 @@ public class Archon extends AbstractBot {
 	 * @param round The current round of the game
 	 * @throws GameActionException
 	 */
-	public void tryPlantGardener(int round) throws GameActionException {
+	public void tryPlantGardener() throws GameActionException {
 		int degree = 0;
+		int round = rc.getRoundNum();
 		while (degree < 360) {
 			float radian = ((float) degree * (float) Math.PI) / 180;
 			Direction direction = new Direction(radian);

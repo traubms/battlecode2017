@@ -10,8 +10,8 @@ public class Gardener extends AbstractBot {
 		super(rc);
 		// TODO Auto-generated constructor stub
 	}
-	public void run() {
-		trees.update();
+	public void run() throws GameActionException {
+		plantTreesAndBuildSoldiers();
 	}
 	/** Checks if tree can be planted and plants there */
     public void plantTree(Direction dir) throws GameActionException {
@@ -83,7 +83,7 @@ public class Gardener extends AbstractBot {
 	 *
 	 * @throws GameActionException
 	 */
-	public void buildGardener() throws GameActionException {
+	public void plantTreesAndBuildSoldiers() throws GameActionException {
 
 		// sense the archon
 		Team team = rc.getTeam();

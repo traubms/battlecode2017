@@ -10,6 +10,5 @@ public class Lumberjack extends AbstractBot {
 	}
 
 	public void run() {
-	    System.out.println("lumberjack");
     }
 }

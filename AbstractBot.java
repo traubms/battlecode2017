@@ -30,7 +30,7 @@ public abstract class AbstractBot {
 		this.radio = new Radio(rc);
 	}
 	
-	public abstract void run();
+	public abstract void run() throws GameActionException;
 	
 	/**random direction */
     static Direction randomDirection() throws GameActionException {
