@@ -16,6 +16,7 @@ public class Soldier extends AbstractBot {
 	public void run() throws GameActionException {
 		bots.update();
 		MapLocation myLocation = rc.getLocation();
+		System.out.println(bots.getBotCounts(team.opponent()));
 
 		if (bots.getBotCounts(team.opponent()) > 0) {
 			boolean single = rc.canFireSingleShot();
