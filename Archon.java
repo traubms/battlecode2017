@@ -44,7 +44,7 @@ public class Archon extends AbstractBot {
     	}
     	hireGardener(); 
     	radio.addToBuildQueue(Codes.SOLIDER);
-    	donateBullets2();
+    	donateBullets3();
    }
     
     public RobotInfo findClosestRobotOfType(RobotType type) {

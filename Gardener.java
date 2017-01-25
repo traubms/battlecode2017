@@ -240,7 +240,7 @@ public class Gardener extends AbstractBot {
 			}
 		}
 
-		Direction directionToBuild = directionToMove;
+		Direction directionToBuild = directionToEnemyArchon(rc.getLocation());
 		if (rc.canBuildRobot(RobotType.SOLDIER, directionToBuild)) {
 				rc.buildRobot(RobotType.SOLDIER, directionToBuild);
 			}

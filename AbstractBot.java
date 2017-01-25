@@ -73,6 +73,12 @@ public abstract class AbstractBot {
             rc.donate(numBullets);
         }
     }
+
+    public void donateBullets3() throws GameActionException {
+        if (rc.getTeamBullets() > 1000) {
+            rc.donate(rc.getTeamBullets());
+        }
+    }
     
     /**
      * Attempts to move in a given direction, while avoiding small obstacles direction in the path.
