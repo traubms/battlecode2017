@@ -298,6 +298,10 @@ public abstract class AbstractBot {
         Direction directionToEnemyArchon = mapLocation.directionTo(locationsOfEnemyArchons[0]);
         return directionToEnemyArchon;
     }
-    
-    
+
+    public void moveToArchon() throws GameActionException {
+        Direction directionToArchon = directionToEnemyArchon(rc.getLocation());
+        if (rc.canMove(directionToArchon))
+                rc.move(directionToArchon);
+    }
 }
