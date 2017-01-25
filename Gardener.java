@@ -20,12 +20,7 @@ public class Gardener extends AbstractBot {
     	}
     }
 
-	public void waterClosestTree() throws GameActionException {
-		TreeInfo[] trees = rc.senseNearbyTrees();
-		if (trees.length > 0){
-			waterLocation(trees[0].location);
-		}
-	}
+
 	public boolean waterLocation(MapLocation loc) throws GameActionException{
 		if (rc.canWater(loc)) {
 			rc.water(loc);
