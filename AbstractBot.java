@@ -1,5 +1,8 @@
 package battlecode2017;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import battlecode.common.BulletInfo;
 import battlecode.common.Clock;
 import battlecode.common.Direction;
@@ -43,6 +46,22 @@ public abstract class AbstractBot {
 
     public boolean tryMove(Direction dir) throws GameActionException {
         return tryMove(dir,20,7);
+    }
+    
+    /**
+     * Exchanges 10% of bullets for victory points every 100 rounds. If at the last round, donates all the bullets. 
+     * @throws GameActionException
+     */
+    public void donateBullets() throws GameActionException{
+        int round = rc.getRoundNum(); 
+        if (round >= rc.getRoundLimit() - 1) {
+            rc.donate(rc.getTeamBullets());
+        }
+        else {
+            if (round == 1 || round % 100 == 0) {
+                rc.donate((float) (0.1*rc.getTeamBullets()));
+            }
+        }
     }
     
     /**
@@ -121,6 +140,58 @@ public abstract class AbstractBot {
         for (BulletInfo bi : bullets) {
             if (willCollideWithMe(bi)) {
                 trySidestep(bi);
+            }
+        }
+    }
+    
+    public boolean shake() throws GameActionException {
+    	ArrayList<TreeInfo> bullets = trees.getBulletTrees();
+    	if (bullets.size() > 0 && rc.canShake(bullets.get(0).ID)){
+    		rc.shake(bullets.get(0).ID);
+    		return true;
+    	} else {
+    		return false;
+    	}
+    }
+
+    /**
+     * Attacks by shooting either a single, triad, or pentad shot.
+     * Only called by soldiers, scouts, and tanks.
+     *
+     * @throws GameActionException
+     */
+    public void attack() throws GameActionException {
+        MapLocation myLocation = rc.getLocation();
+        //System.out.println(bots.getBotCounts(team.opponent()));
+
+        if (bots.getBotCounts(team.opponent()) > 0) {
+            boolean single = rc.canFireSingleShot();
+            boolean triad = rc.canFireTriadShot();
+            boolean pentad = rc.canFirePentadShot();
+            RobotInfo closestEnemy = bots.getClosestbot(team.opponent());
+
+            Direction directionToMove = myLocation.directionTo(closestEnemy.location);
+            if (rc.canMove(directionToMove)) {
+                rc.move(directionToMove, .5f);
+            }
+
+            if (single || triad || pentad) {
+                Direction directionToShoot = myLocation.directionTo(closestEnemy.location);
+                if (rc.canFirePentadShot())
+                    rc.firePentadShot(directionToShoot);
+                else if (rc.canFireTriadShot())
+                    rc.fireTriadShot(directionToShoot);
+                else
+                    rc.fireSingleShot(directionToShoot);
+            }
+        }
+        else {
+            List<RobotInfo> teamBots = bots.getBots(rc.getTeam());
+            if (teamBots.size() > 0) {
+                Direction directionToFriend = myLocation.directionTo(teamBots.get(0).location);
+                if (rc.canMove(directionToFriend)) {
+                    tryMove(directionToFriend);
+                }
             }
         }
     }
