@@ -64,6 +64,11 @@ public abstract class AbstractBot {
             }
     }
 
+    public void donateBullets3() throws GameActionException {
+        if (rc.getTeamBullets() > 1000) {
+            rc.donate(rc.getTeamBullets());
+        }
+    }
     
 
     /**
