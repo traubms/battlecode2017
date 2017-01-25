@@ -11,6 +11,7 @@ public class Gardener extends AbstractBot {
 	MapLocation base;
 	Direction dirToBase;
 	List<MapLocation> treeTargets;
+	List<MapLocation> builtTrees;
 	boolean makeTree;
 	
 	public Gardener(RobotController rc) {
@@ -30,12 +31,13 @@ public class Gardener extends AbstractBot {
 	public void run() throws GameActionException {
 	    trees.update();
 	    bots.update();
-	    if (makeTree){
-	    	plantTreeInFormation();
-	    	waterWeakest();
-	    } else {
-	    	waterAndMove();
-	    }
+//	    if (makeTree){
+//	    	plantTreeInFormation();
+//	    	waterWeakest();
+//	    } else {
+//	    	waterAndMove();
+//	    }
+	    waterAndMove();
 	    followBuildCommands();
 	    
 	}
@@ -79,7 +81,7 @@ public class Gardener extends AbstractBot {
     	MapLocation nextLoc = this.treeTargets.get(0);
     	System.out.println(nextLoc);
     	if(plantTree(nextLoc)){
-    		treeTargets.remove(0);
+    		builtTrees.add(treeTargets.remove(0));
     		makeTree = false;
     		return true;
     	} else {
@@ -346,6 +348,23 @@ public class Gardener extends AbstractBot {
 	
 	public List<MapLocation> calculateTreeTargets(){
 		return calculateTreeTargets(8);
+	}
+	
+	public void checkOnTrees() throws GameActionException{
+		int i = 0;
+		for(MapLocation loc: builtTrees){
+			if(rc.senseTreeAtLocation(loc) == null){
+				this.treeTargets.add(0, builtTrees.remove(i));
+			}
+			i++;
+		}
+		i = 0;
+		for(MapLocation loc: this.treeTargets){
+			if(rc.senseTreeAtLocation(loc) != null){
+				this.builtTrees.add(0, treeTargets.remove(i));
+			}
+			i++;
+		}
 	}
 
 

@@ -87,6 +87,10 @@ public class TreeReport {
 		return getTreeCounts(Team.A) + getTreeCounts(Team.B) + getTreeCounts(Team.NEUTRAL);
 	}
 	
+	public List<TreeInfo> getTrees(Team t){
+		return trees.get(t);
+	}
+	
 	public ArrayList<TreeInfo> getBulletTrees(){
 		return this.containsBullets;
 	}

@@ -3,6 +3,10 @@ package battlecode2017;
 import battlecode.common.GameActionException;
 import battlecode.common.RobotController;
 import battlecode.common.RobotInfo;
+
+import java.util.HashMap;
+import java.util.Map;
+
 import battlecode.common.Direction;
 import battlecode.common.RobotType;
 import battlecode.common.Team;
@@ -23,27 +27,8 @@ public class Archon extends AbstractBot {
     public void run() throws GameActionException {
 	    trees.update();
     	bots.update();
-		
-    	if(trees.getTreeCounts(Team.NEUTRAL) > 3) { // If there's too many trees nearby w/in radius, build lumberjack
-    	    hireGardener();  
-    	    radio.addToBuildQueue(Codes.LUMBERJACK);
-    	} 
-    	if(trees.getTreeCounts(this.team) < 8) { // If there's too many trees nearby w/in radius, build lumberjack
-    	    hireGardener();  
-    	    radio.addToBuildQueue(Codes.TREE);
-    	} 
-    	
-    	if(this.trees.getBulletTrees().size() > 0) { // If there are bullet trees, build gardeners to make scouts. 
-    	    RobotInfo closestScout = findClosestRobotOfType(RobotType.SCOUT);
-    	    if(closestScout == null) {
-    	        hireGardener();
-    	        radio.addToBuildQueue(Codes.SCOUT);
-    	    } else {
-    	        // do nothing? 
-    	    }
-    	}
+		makeBuildOrders();
     	hireGardener(); 
-    	radio.addToBuildQueue(Codes.SOLIDER);
     	donateBullets2();
    }
     
@@ -54,6 +39,28 @@ public class Archon extends AbstractBot {
             }
         }
         return null; //TODO: Change this null statement
+    }
+    
+    public void makeBuildOrders() throws GameActionException{
+		int lumbers, tree, scouts, tanks, soldiers;
+    	lumbers = (int) trees.getTreeCounts(Team.NEUTRAL) / 2;
+    	tree = (int) Math.max(Math.random() + .2, 10 - trees.getTreeCounts(this.team));
+    	RobotInfo closestScout = findClosestRobotOfType(RobotType.SCOUT);
+    	if (closestScout == null)
+    		scouts = 1;
+    	else
+    		scouts = 0;
+    	tanks = 0;
+    	soldiers = (int) (bots.getBotCounts(team.opponent()) / 2);
+    	
+    	Map<Codes, Integer> orders = new HashMap<Codes, Integer>();
+    	orders.put(Codes.LUMBERJACK, lumbers);
+    	orders.put(Codes.TANK, tanks);
+    	orders.put(Codes.SCOUT, scouts);
+    	orders.put(Codes.SOLIDER, soldiers);
+    	orders.put(Codes.TREE, tree);
+    	System.out.println(orders);
+    	radio.makeBuildOrders(orders);
     }
     
 	/** Trys to plant a gardener around an Archon by checking different
