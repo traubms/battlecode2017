@@ -56,33 +56,15 @@ public class Gardener extends AbstractBot {
 	}
 
 	/**build functions for various robot types*/
-	public boolean buildTank(Direction d) throws GameActionException{
-		if (rc.canBuildRobot(RobotType.TANK, d)){
-			rc.buildRobot(RobotType.TANK, d);
+	public boolean build(Direction d, RobotType type) throws GameActionException{
+		if (rc.canBuildRobot(type, d)){
+			rc.buildRobot(type, d);
 			return true;
-		} else {return false;}
+		} else {
+			return false;
+		}
 	}
-
-	public boolean buildScout(Direction d) throws GameActionException{
-		if (rc.canBuildRobot(RobotType.SCOUT, d)){
-			rc.buildRobot(RobotType.SCOUT, d);
-			return true;
-		} else {return false;}
-	}
-
-	public boolean buildSoldier(Direction d) throws GameActionException{
-		if (rc.canBuildRobot(RobotType.SOLDIER, d)){
-			rc.buildRobot(RobotType.SOLDIER, d);
-			return true;
-		} else {return false;}
-	}
-
-	public boolean buildLumberjack(Direction d) throws GameActionException{
-		if (rc.canBuildRobot(RobotType.LUMBERJACK, d)){
-			rc.buildRobot(RobotType.LUMBERJACK, d);
-			return true;
-		} else {return false;}
-	}
+	
 	/**Determines whether or not can plant a tree at a given location */
 	public boolean canPlantLoc(MapLocation plantSite) {
 		if (rc.getLocation().distanceTo(plantSite) == (1 + GameConstants.GENERAL_SPAWN_OFFSET)

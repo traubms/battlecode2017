@@ -17,11 +17,13 @@ public abstract class AbstractBot {
 	protected RobotController rc;
 	protected Team team;
 	protected TreeReport trees;
+	protected Radio radio;
 	
 	public AbstractBot(RobotController rc){
 		this.rc = rc;
 		this.team = rc.getTeam();
 		this.trees = new TreeReport(rc);
+		this.radio = new Radio(rc);
 	}
 	
 	public abstract void run();
