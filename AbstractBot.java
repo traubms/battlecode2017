@@ -52,7 +52,7 @@ public abstract class AbstractBot {
      * Exchanges 10% of bullets for victory points every 100 rounds. If at the last round, donates all the bullets. 
      * @throws GameActionException
      */
-    public void donateBullets() throws GameActionException{
+    public void donateBullets() throws GameActionException{     //TODO change this to not waste bullets by truncation
         int round = rc.getRoundNum(); 
         if (round >= rc.getRoundLimit() - 1) {
             rc.donate(rc.getTeamBullets());
@@ -63,7 +63,24 @@ public abstract class AbstractBot {
             }
         }
     }
-    
+    /**basic function for moving to a map location*/
+    public boolean moveTo(MapLocation dest) throws GameActionException {
+        float distTo = rc.getLocation().distanceTo(dest);
+        Direction dirTo = rc.getLocation().directionTo(dest);
+
+        if (distTo > rc.getType().strideRadius) {
+            return tryMove(dirTo);
+        } else {
+            if (rc.canMove(dest)) {
+                rc.move(dest);
+                return true;
+            } else {
+                return tryMove(dirTo);
+                }
+            }
+    }
+
+
     /**
      * Attempts to move in a given direction, while avoiding small obstacles direction in the path.
      *
@@ -177,7 +194,7 @@ public abstract class AbstractBot {
 
             if (single || triad || pentad) {
                 Direction directionToShoot = myLocation.directionTo(closestEnemy.location);
-                if (rc.canFirePentadShot())
+                if (rc.canFirePentadShot())  //TODO take into account that friendlies might be in the way?
                     rc.firePentadShot(directionToShoot);
                 else if (rc.canFireTriadShot())
                     rc.fireTriadShot(directionToShoot);
