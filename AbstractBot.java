@@ -63,6 +63,16 @@ public abstract class AbstractBot {
             }
         }
     }
+
+    public void donateBullets2() throws GameActionException {
+        float round = rc.getRoundNum();
+        float numBullets = rc.getTeamBullets();
+        float conversion = (7.5f) + ((round * 12.5f) / 3000f);
+
+        if (numBullets / conversion > 1000) {
+            rc.donate(numBullets);
+        }
+    }
     
     /**
      * Attempts to move in a given direction, while avoiding small obstacles direction in the path.
@@ -194,5 +204,17 @@ public abstract class AbstractBot {
                 }
             }
         }
+    }
+
+    /**
+     * Returns the initial direction to the enemy archons
+     * @param mapLocation Location of robot
+     * @return Direction to the nearest enemy archon
+     * @throws GameActionException
+     */
+    public Direction directionToEnemyArchon(MapLocation mapLocation) throws GameActionException {
+        MapLocation[] locationsOfEnemyArchons = rc.getInitialArchonLocations(rc.getTeam().opponent());
+        Direction directionToEnemyArchon = mapLocation.directionTo(locationsOfEnemyArchons[0]);
+        return directionToEnemyArchon;
     }
 }
