@@ -42,6 +42,11 @@ public class Gardener extends AbstractBot {
 		}
 	}
 
+	//TODO Make build robot logic
+
+    //TODO Make planting trees logic
+
+    //TODO Make better movement logic
 
 	public void waterAndMove() throws GameActionException {
 	    while (rc.canWater()) {
