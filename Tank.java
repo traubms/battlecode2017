@@ -11,7 +11,9 @@ public class Tank extends AbstractBot {
 	}
 
 	public void run() throws GameActionException {
+		bots.update();
 		dodge();
+		attack();
 	}
 
 }

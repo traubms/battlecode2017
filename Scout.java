@@ -24,6 +24,7 @@ public class Scout extends AbstractBot {
 		} else {
 			wander();
 		}
+		attack();
 	}
 
 }
