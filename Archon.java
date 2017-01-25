@@ -3,14 +3,22 @@ package battlecode2017;
 import battlecode.common.GameActionException;
 import battlecode.common.RobotController;
 import battlecode.common.RobotInfo;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import battlecode.common.Direction;
 import battlecode.common.RobotType;
 import battlecode.common.Team;
 
 public class Archon extends AbstractBot {
     
+	private int scoutsMade;
+	
 	public Archon(RobotController rc) {
 		super(rc);
+		this.scoutsMade = 0;
 	}
 
 	/*
@@ -23,22 +31,8 @@ public class Archon extends AbstractBot {
     public void run() throws GameActionException {
 	    trees.update();
     	bots.update();
-		
-    	if(rc.senseNearbyTrees(RobotType.ARCHON.sensorRadius, Team.NEUTRAL).length > 0) { // If there's too many trees nearby w/in radius, build lumberjack
-    	    hireGardener();  
-    	    radio.addToBuildQueue(Codes.LUMBERJACK);
-    	}
-    	if(this.trees.getBulletTrees().size() > 0) { // If there are bullet trees, build gardeners to make scouts. 
-    	    RobotInfo closestScout = findClosestRobotOfType(RobotType.SCOUT); 
-    	    if(closestScout == null) {
-    	        hireGardener();
-    	        radio.addToBuildQueue(Codes.SCOUT);
-    	    } else {
-    	        // do nothing? 
-    	    }
-    	}
-    	hireGardener(); 
-    	donateBullets(); 
+		makeBuildOrders(); 
+    	donateBullets2();
    }
     
     public RobotInfo findClosestRobotOfType(RobotType type) {
@@ -48,6 +42,72 @@ public class Archon extends AbstractBot {
             }
         }
         return null; //TODO: Change this null statement
+    }
+    
+    public int getTypeCount(RobotType type, Team t) {
+        int count = 0; 
+        List<RobotInfo> bots = (List<RobotInfo>) this.bots.getBots(t);
+        for(RobotInfo b : bots) {
+            if(b.getType() == type) {
+                count++; 
+            }
+        }
+        return count;
+    }
+    
+    public boolean noBots(RobotType type, Team t) {
+        return getTypeCount(type, t) == 0; 
+    }
+    
+    /*
+     * Priority Listing:
+     *   Tank
+     *   Lumberjack
+     *   Scout
+     *   Soldier
+     *   Tree
+     * 
+     * make soldier first but also doesn't make more gardeners than we need
+     */
+    public void makeBuildOrders() throws GameActionException{
+        int maxGardeners = 15; 
+		int lumbers, tree, scouts, tanks, soldiers, gardeners;
+    	
+		//LumberJacks
+		lumbers = (int) trees.getTreeCounts(Team.NEUTRAL) / 2;
+    	
+		//Trees
+		tree = (int) Math.max(Math.random() + .2, 10 - trees.getTreeCounts(this.team));
+    	
+		//Gardeners
+		gardeners = (int) Math.min(rc.getTeamBullets() / 100, maxGardeners);
+		
+		//Scout
+    	scouts = (int) (Math.random() + .3);
+    	
+    	//Tanks
+    	tanks = 0; 
+    	
+    	//Soldiers
+    	soldiers = 1;
+    	
+    	boolean noTanks = noBots(RobotType.TANK, this.team); 
+        boolean needSoldiers = getTypeCount(RobotType.SOLDIER, this.team) < soldiers; 
+    	Map<Codes, Integer> orders = new HashMap<Codes, Integer>();
+    	
+    	if(soldiers > 0 || lumbers > 0)
+    		tree = 0;
+        if(getTypeCount(RobotType.GARDENER, this.team) >= gardeners)
+            gardeners = 0; 
+        orders.put(Codes.SOLDIER, soldiers);
+        orders.put(Codes.TANK, tanks);
+        orders.put(Codes.LUMBERJACK, lumbers);
+        orders.put(Codes.SCOUT, scouts);
+    	orders.put(Codes.TREE, tree);
+    	System.out.println(orders);
+    	if (gardeners > 0)
+    		hireGardener();
+    	radio.makeBuildOrders(orders);
     }
     
 	/** Trys to plant a gardener around an Archon by checking different
@@ -64,7 +124,7 @@ public class Archon extends AbstractBot {
 			if (rc.canHireGardener(direction) && (round == 1 || round % 60 == 0)) {
 				rc.hireGardener(direction);
 			}
-			degree += 60;
+			degree += 120;
 		}
 	}
 }

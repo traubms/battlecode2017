@@ -3,10 +3,8 @@ package battlecode2017;
 import java.util.HashMap;
 import java.util.Map;
 
-import battlecode.common.Clock;
 import battlecode.common.GameActionException;
 import battlecode.common.RobotController;
-import battlecode.common.RobotType;
 
 public class Radio {
 		
@@ -16,7 +14,7 @@ public class Radio {
 			Codes.LUMBERJACK,
 			Codes.SCOUT,
 			Codes.TANK,
-			Codes.SOLIDER
+			Codes.SOLDIER
 	};
 
 	public Radio(RobotController rc) {
@@ -44,9 +42,7 @@ public class Radio {
 	}
 	
 	public Map<Codes, Integer> checkBuildOrders() throws GameActionException{
-		int bc = Clock.getBytecodeNum();
 		float message = listen(Channels.BUILD);
-		System.out.println(Clock.getBytecodeNum() - bc);
 		Map<Codes, Integer> counts = new HashMap<Codes, Integer>();
 		if (message > 1){
 			int count;

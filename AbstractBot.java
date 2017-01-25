@@ -1,6 +1,7 @@
 package battlecode2017;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import battlecode.common.BulletInfo;
 import battlecode.common.Clock;
@@ -35,34 +36,49 @@ public abstract class AbstractBot {
 	
 	public abstract void run() throws GameActionException;
 	
-
-    
     /** Move in random direction*/
     public boolean wander() throws GameActionException {
         Direction dir = BotUtils.randomDirection();
         return tryMove(dir);
     }
 
+    /** most fundamental movement funciton we've made*/
+    public boolean move(Direction dir) throws GameActionException {
+        if (!rc.hasMoved() && rc.canMove(dir)) {
+            rc.move(dir);
+            return true;
+        } else return false;
+    }
+
     public boolean tryMove(Direction dir) throws GameActionException {
         return tryMove(dir,20,7);
     }
     
-    /**
-     * Exchanges 10% of bullets for victory points every 100 rounds. If at the last round, donates all the bullets. 
-     * @throws GameActionException
-     */
-    public void donateBullets() throws GameActionException{
-        int round = rc.getRoundNum(); 
-        if (round >= rc.getRoundLimit() - 1) {
-            rc.donate(rc.getTeamBullets());
-        }
-        else {
-            if (round == 1 || round % 100 == 0) {
-                rc.donate((float) (0.1*rc.getTeamBullets()));
+
+    /**basic function for moving to a map location*/
+    public boolean moveTo(MapLocation dest) throws GameActionException {
+        float distTo = rc.getLocation().distanceTo(dest);
+        Direction dirTo = rc.getLocation().directionTo(dest);
+
+        if (distTo > rc.getType().strideRadius) {
+            return tryMove(dirTo);
+        } else {
+            if (!rc.hasMoved() && rc.canMove(dest)) {
+                rc.move(dest);
+                return true;
+            } else {
+                return tryMove(dirTo);
+                }
             }
+    }
+
+    public void donateBullets3() throws GameActionException {
+        if (rc.getTeamBullets() > 1000) {
+            rc.donate(rc.getTeamBullets());
         }
     }
     
+
     /**
      * Attempts to move in a given direction, while avoiding small obstacles direction in the path.
      *
@@ -75,26 +91,16 @@ public abstract class AbstractBot {
     public boolean tryMove(Direction dir, float degreeOffset, int checksPerSide) throws GameActionException {
 
         // First, try intended direction
-        if (!rc.hasMoved() && rc.canMove(dir)) {
-            rc.move(dir);
-            return true;
-        }
-
+        move(dir);
         // Now try a bunch of similar angles
         //boolean moved = rc.hasMoved();
         int currentCheck = 1;
 
         while(currentCheck<=checksPerSide) {
-            // Try the offset of the left side
-            if(!rc.hasMoved() && rc.canMove(dir.rotateLeftDegrees(degreeOffset*currentCheck))) {
-                rc.move(dir.rotateLeftDegrees(degreeOffset*currentCheck));
-                return true;
-            }
-            // Try the offset on the right side
-            if(! rc.hasMoved() && rc.canMove(dir.rotateRightDegrees(degreeOffset*currentCheck))) {
-                rc.move(dir.rotateRightDegrees(degreeOffset*currentCheck));
-                return true;
-            }
+            // Try the offset of the right side
+            move(dir.rotateRightDegrees(degreeOffset*currentCheck));
+            // Try the offset on the left side
+            move(dir.rotateLeftDegrees(degreeOffset*currentCheck));
             // No move performed, try slightly further
             currentCheck++;
         }
@@ -102,7 +108,82 @@ public abstract class AbstractBot {
         // A move never happened, so return false.
         return false;
     }
+    
+    public void moveTowardsEnemiesOrTrees() throws GameActionException{
+		MapLocation goal = null;
+		if (bots.getBotCounts(team.opponent()) > 0){ // move to opponent
+			goal = bots.getClosestbot(team.opponent()).location;
+		} else if (trees.getTreeCounts(team.opponent()) > 0){ // move to enemy tree
+			goal = trees.getClosestTree(team.opponent()).location;
+		} else if (trees.getTreeCounts(Team.NEUTRAL) > 0){ // move to neutral tree
+			goal = trees.getClosestTree(Team.NEUTRAL).location;
+		} 
+		
+		if (goal == null) {
+			wander();
+		} else if(!rc.getLocation().isWithinDistance(goal, (float) 2.4)){
+			this.tryMove(rc.getLocation().directionTo(goal));
+		}
+    }
+    
+    public void moveTowardsOrWander(MapLocation goal, float tol) throws GameActionException{
+    	if (goal == null) {
+			wander();
+		} else if(!rc.getLocation().isWithinDistance(goal, tol)){
+			this.moveTo(goal);
+		}
+    }
+    
+    public void moveTowardsOrWander(MapLocation goal) throws GameActionException{
+    	moveTowardsOrWander(goal, this.EPSILON);
+    }
+    
+    
+    public MapLocation nearestEnemyBotOrTree(){
+    	if (bots.getBotCounts(team.opponent()) > 0){ // move to opponent
+			return bots.getClosestbot(team.opponent()).location;
+		} else if (trees.getTreeCounts(team.opponent()) > 0){ // move to enemy tree
+			return trees.getClosestTree(team.opponent()).location;
+		} else {
+			return null;
+		} 
+    }
 
+    public TreeInfo nearestEnemyTreeOrNeutralTree() {
+        TreeInfo nearestTree = null;
+        if (trees.getTreeCounts(Team.NEUTRAL) > 0) {
+            nearestTree = trees.getClosestTree(Team.NEUTRAL);
+        }
+        if (trees.getTreeCounts(team.opponent()) > 0) {
+            TreeInfo nearestBTree = trees.getClosestTree(team.opponent());
+            if (nearestTree == null || rc.getLocation().distanceTo(nearestBTree.getLocation()) < rc.getLocation().distanceTo(nearestTree.getLocation())) {
+                nearestTree = nearestBTree;
+            }
+        }
+        if (nearestTree!=null) return nearestTree;
+        else return null;
+
+    }
+    
+    public MapLocation nearestEnemyBotOrTreeOrNeutralTree(){
+    	MapLocation enemy = nearestEnemyBotOrTree();
+    	if (enemy == null){
+    		if(trees.getTreeCounts(Team.NEUTRAL) > 0)
+    			return trees.getClosestTree(Team.NEUTRAL).location;
+    	} 
+    	return null; // no enemy or neutral tree
+    }
+    
+    public MapLocation nearestEnemyBotOrTreeOrBulletTree(){
+    	MapLocation enemy = nearestEnemyBotOrTree();
+    	if (enemy == null){
+    		ArrayList<TreeInfo> bulletTrees = trees.getBulletTrees();
+    		if(bulletTrees.size() > 0)
+    			return bulletTrees.get(0).location;
+    	} 
+    	return null; // no enemy or bullet tree
+    }
+    	
     public boolean willCollideWithMe(BulletInfo bullet) {
         MapLocation myLocation = rc.getLocation();
 
@@ -151,5 +232,113 @@ public abstract class AbstractBot {
     	} else {
     		return false;
     	}
+    }
+
+
+
+    /**
+     * Attacks by shooting either a single, triad, or pentad shot.
+     * Only called by soldiers, scouts, and tanks.
+     *
+     * @throws GameActionException
+     */
+
+    public void attack() throws GameActionException {
+
+        MapLocation myLocation = rc.getLocation();
+        //System.out.println(bots.getBotCounts(team.opponent()));
+        RobotInfo closestEnemy = bots.getClosestbot(team.opponent());
+        float directionDifference = (float) 500;
+
+        if (closestEnemy!=null) {
+            boolean single = rc.canFireSingleShot();
+            boolean triad = rc.canFireTriadShot();
+            boolean pentad = rc.canFirePentadShot();
+
+
+            Direction directionToMove = myLocation.directionTo(closestEnemy.location);
+            TreeInfo nearestBadTree = trees.getClosestTree(team.opponent());
+            TreeInfo nearestNTree = trees.getClosestTree(Team.NEUTRAL);
+            if (nearestNTree != null) {
+                if (nearestBadTree == null) {
+                    nearestBadTree = nearestNTree;
+                } else if (rc.getLocation().distanceTo(nearestBadTree.location) > rc.getLocation().distanceTo(nearestNTree.location)){
+                    nearestBadTree = nearestNTree;
+                }
+            }
+
+            if (nearestBadTree != null) {
+                directionDifference = directionToMove.degreesBetween(myLocation.directionTo(nearestBadTree.location));
+            }
+
+            tryMove(directionToMove, 10, 2);
+
+
+            if (single || triad || pentad) {
+                Direction directionToShoot = myLocation.directionTo(closestEnemy.location);
+
+                //setting appropriate ranges based on type of enemy to reduce wasted bullets and friendly fire
+                //tweak the hardcoded numbers as appropriate
+                float pentadRange = (float) 1 + rc.getType().bodyRadius;
+                float triadRange = (float) 1.574 + rc.getType().bodyRadius;
+                float singleRange = (float) 2.1 + rc.getType().bodyRadius;
+                if (closestEnemy.getType().equals(RobotType.ARCHON) || closestEnemy.getType().equals(RobotType.TANK)) {
+                    pentadRange = pentadRange + (float) 1;
+                    triadRange = triadRange + (float) 1.3;
+                    singleRange = singleRange + (float) 2.5;
+                }
+                float distToEnemy = rc.getLocation().distanceTo(closestEnemy.location);
+
+                if (rc.canFirePentadShot() && distToEnemy < pentadRange)
+                    rc.firePentadShot(directionToShoot);
+                else if (rc.canFirePentadShot() && nearestBadTree!= null && myLocation.distanceTo(nearestBadTree.location) < (float) 1.5
+                        && directionDifference < (float) 50) {
+                    rc.firePentadShot(directionToShoot);
+                }
+                else if (rc.canFireTriadShot() && distToEnemy < triadRange)
+                    rc.fireTriadShot(directionToShoot);
+                else if (rc.canFireTriadShot() && nearestBadTree!= null && myLocation.distanceTo(nearestBadTree.location) < (float) 1.5
+                        && directionDifference < (float) 50) {
+                    rc.firePentadShot(directionToShoot);
+                }
+                else if (distToEnemy < singleRange)
+                    rc.fireSingleShot(directionToShoot);
+            }
+        }
+        else {
+            RobotInfo inDanger = bots.getWeakestbot(team);
+            if (inDanger!=null) tryMove(rc.getLocation().directionTo(inDanger.location));
+
+
+        }
+    }
+    
+
+    public void donateBullets2() throws GameActionException {
+        float round = rc.getRoundNum();
+        float numBullets = rc.getTeamBullets();
+        float conversion = (7.5f) + ((round * 12.5f) / 3000f);
+
+        if (numBullets / conversion > 1000) {
+            rc.donate(numBullets);
+        }
+    }
+
+    /**
+     * Returns the initial direction to the enemy archons
+     * @param mapLocation Location of robot
+     * @return Direction to the nearest enemy archon
+     * @throws GameActionException
+     */
+    public Direction directionToEnemyArchon(MapLocation mapLocation) throws GameActionException {
+        MapLocation[] locationsOfEnemyArchons = rc.getInitialArchonLocations(team.opponent());
+        Direction directionToEnemyArchon = mapLocation.directionTo(locationsOfEnemyArchons[0]);
+        return directionToEnemyArchon;
+    }
+
+    public void moveToArchon() throws GameActionException {
+        Direction directionToArchon = directionToEnemyArchon(rc.getLocation());
+        if (rc.canMove(directionToArchon))
+                rc.move(directionToArchon);
     }
 }
