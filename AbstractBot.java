@@ -13,21 +13,24 @@ import battlecode.common.TreeInfo;
 import battlecode.common.GameConstants;
 
 public abstract class AbstractBot {
+	
+	protected final float EPSILON = (float) 0.001;
 
 	protected RobotController rc;
 	protected Team team;
 	protected TreeReport trees;
-	protected final float EPSILON = (float) 0.001;
+	protected BotReport bots;
 	protected Radio radio;
 	
 	public AbstractBot(RobotController rc){
 		this.rc = rc;
 		this.team = rc.getTeam();
 		this.trees = new TreeReport(rc);
+		this.bots = new BotReport(rc);
 		this.radio = new Radio(rc);
 	}
 	
-	public abstract void run();
+	public abstract void run() throws GameActionException;
 	
 	/**random direction */
     static Direction randomDirection() throws GameActionException {

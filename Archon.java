@@ -12,9 +12,10 @@ public class Archon extends AbstractBot {
 		// TODO Auto-generated constructor stub
 	}
 
-    public void run() {
-	    trees.update();
+    public void run() throws GameActionException {
+    	tryPlantGardener();
     }
+    
 	/**build Gardener in given direction d
 	 * @param d : direction in which to place thing
 	 *          @return boolean as to whether or not it built one
@@ -27,4 +28,22 @@ public class Archon extends AbstractBot {
 		} else {return false;}
 	}
 
+	/** Trys to plant a gardener around an Archon by checking different
+	 * possible planting locations around it. Only plants every 50 turns
+	 *
+	 * @param round The current round of the game
+	 * @throws GameActionException
+	 */
+	public void tryPlantGardener() throws GameActionException {
+		int degree = 0;
+		int round = rc.getRoundNum();
+		while (degree < 360) {
+			float radian = ((float) degree * (float) Math.PI) / 180;
+			Direction direction = new Direction(radian);
+			if (rc.canHireGardener(direction) && (round == 1 || round % 60 == 0)) {
+				rc.hireGardener(direction);
+			}
+			degree += 60;
+		}
+	}
 }

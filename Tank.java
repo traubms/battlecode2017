@@ -10,7 +10,6 @@ public class Tank extends AbstractBot {
 	}
 
 	public void run() {
-		System.out.println("tank");
 	}
 
 }
