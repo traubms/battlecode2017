@@ -14,10 +14,8 @@ public class Gardener extends AbstractBot {
 	public void run() throws GameActionException {
 	    trees.update();
 	    dodge();
-	    int bc = Clock.getBytecodeNum();
+	    waterAndMove();
 	    followBuildCommands();
-	    System.out.println(Clock.getBytecodeNum() - bc);
-		plantTreesAndBuildSoldiers();
 	}
 
 	/** Checks if tree can be planted in a direction and plants there 
@@ -29,6 +27,17 @@ public class Gardener extends AbstractBot {
     	} else {
     		return false;
     	}
+    }
+    
+    public boolean plantTree() throws GameActionException{
+	    Direction tryPlantDir = BotUtils.randomDirection();
+		for (int i = 0; i < 8; i++) {
+			tryPlantDir = tryPlantDir.rotateLeftDegrees((float) (360. / 8));
+			if (this.plantTree(tryPlantDir)){ // if build successful, break and return true
+				return true;
+			}
+		}
+		return false; // build not successful, so return false
     }
     
     public void followBuildCommands() throws GameActionException{
@@ -62,26 +71,7 @@ public class Gardener extends AbstractBot {
 		return false; // build not successful, so return false
     }
     
-    public boolean plantTree() throws GameActionException{
-	    Direction tryPlantDir = BotUtils.randomDirection();
-		for (int i = 0; i < 8; i++) {
-			tryPlantDir = tryPlantDir.rotateLeftDegrees((float) (360. / 8));
-			if (this.plantTree(tryPlantDir)){ // if build successful, break and return true
-				return true;
-			}
-		}
-		return false; // build not successful, so return false
-    }
-
-	public boolean waterLocation(MapLocation loc) throws GameActionException{
-		if (rc.canWater(loc)) {
-			rc.water(loc);
-			return true;
-		} else
-			return false;
-	}
-
-	/**build functions for various robot types*/
+    /**build functions for various robot types*/
 	public boolean build(Direction d, RobotType type) throws GameActionException{
 		if (rc.canBuildRobot(type, d)){
 			rc.buildRobot(type, d);
@@ -89,6 +79,14 @@ public class Gardener extends AbstractBot {
 		} else {
 			return false;
 		}
+	}
+
+	public boolean waterLocation(MapLocation loc) throws GameActionException{
+		if (rc.canWater(loc)) {
+			rc.water(loc);
+			return true;
+		} else
+			return false;
 	}
 
 	//TODO Make build robot logic
@@ -131,10 +129,14 @@ public class Gardener extends AbstractBot {
     }
 
 	public void waterAndMove() throws GameActionException {
-	    while (rc.canWater()) {
-	        waterWeakest();
-        }
-        tryMove(rc.getLocation().directionTo(trees.getWeakestTree(team).location));
+		TreeInfo weakest = trees.getWeakestTree(team);
+	    if(trees.getTreesWithinInteract(team).size() > 0){
+	    	waterWeakest();
+	    } else if (weakest != null){
+	    	tryMove(rc.getLocation().directionTo(weakest.location));
+	    } else {
+	    	wander();
+	    }
 	    // may be a problem if I CAN'T water and move in the same turn
         // TODO insert your move function here to replace the simple one above
     }
@@ -146,11 +148,10 @@ public class Gardener extends AbstractBot {
      */
 	public boolean waterWeakest() throws GameActionException {
 	    TreeInfo weakest = trees.getWeakestTreeWithinInteract(team);
-        if (weakest.health <= TREE_WATERING_THRESHOLD && rc.canWater(weakest.location)) {
+        if (weakest != null && weakest.health <= TREE_WATERING_THRESHOLD && rc.canWater(weakest.location)) {
             rc.water(weakest.location);
             return true;
-        }
-        else {
+        } else {
             return false;
         }
     }

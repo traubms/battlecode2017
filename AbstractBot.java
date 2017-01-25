@@ -49,22 +49,6 @@ public abstract class AbstractBot {
     }
     
     /**
-     * Exchanges 10% of bullets for victory points every 100 rounds. If at the last round, donates all the bullets. 
-     * @throws GameActionException
-     */
-    public void donateBullets() throws GameActionException{
-        int round = rc.getRoundNum(); 
-        if (round >= rc.getRoundLimit() - 1) {
-            rc.donate(rc.getTeamBullets());
-        }
-        else {
-            if (round == 1 || round % 100 == 0) {
-                rc.donate((float) (0.1*rc.getTeamBullets()));
-            }
-        }
-    }
-    
-    /**
      * Attempts to move in a given direction, while avoiding small obstacles direction in the path.
      *
      * @param dir The intended direction of movement
@@ -102,6 +86,41 @@ public abstract class AbstractBot {
 
         // A move never happened, so return false.
         return false;
+    }
+    
+    public void moveTowardsEnemiesOrTrees() throws GameActionException{
+		MapLocation goal = null;
+		if (bots.getBotCounts(team.opponent()) > 0){ // move to opponent
+			goal = bots.getClosestbot(team.opponent()).location;
+		} else if (trees.getTreeCounts(team.opponent()) > 0){ // move to enemy tree
+			goal = trees.getClosestTree(team.opponent()).location;
+		} else if (trees.getTreeCounts(Team.NEUTRAL) > 0){ // move to neutral tree
+			goal = trees.getClosestTree(Team.NEUTRAL).location;
+		} 
+		
+		if (goal == null) {
+			wander();
+		} else if(!rc.getLocation().isWithinDistance(goal, (float) 2.4)){
+			this.tryMove(rc.getLocation().directionTo(goal));
+		}
+    }
+    
+    public void moveTowardsOrWander(MapLocation goal, float tol) throws GameActionException{
+    	if (goal == null) {
+			wander();
+		} else if(!rc.getLocation().isWithinDistance(goal, tol)){
+			this.tryMove(rc.getLocation().directionTo(goal));
+		}
+    }
+    
+    public MapLocation nearestEnemyBotOrTree(){
+    	if (bots.getBotCounts(team.opponent()) > 0){ // move to opponent
+			return bots.getClosestbot(team.opponent()).location;
+		} else if (trees.getTreeCounts(team.opponent()) > 0){ // move to enemy tree
+			return trees.getClosestTree(team.opponent()).location;
+		} else {
+			return null;
+		} 
     }
 
     public boolean willCollideWithMe(BulletInfo bullet) {
@@ -161,37 +180,56 @@ public abstract class AbstractBot {
      * @throws GameActionException
      */
     public void attack() throws GameActionException {
-        MapLocation myLocation = rc.getLocation();
-        //System.out.println(bots.getBotCounts(team.opponent()));
-
-        if (bots.getBotCounts(team.opponent()) > 0) {
-            boolean single = rc.canFireSingleShot();
-            boolean triad = rc.canFireTriadShot();
-            boolean pentad = rc.canFirePentadShot();
-            RobotInfo closestEnemy = bots.getClosestbot(team.opponent());
-
-            Direction directionToMove = myLocation.directionTo(closestEnemy.location);
-            if (rc.canMove(directionToMove)) {
-                rc.move(directionToMove, .5f);
-            }
-
-            if (single || triad || pentad) {
-                Direction directionToShoot = myLocation.directionTo(closestEnemy.location);
-                if (rc.canFirePentadShot())
-                    rc.firePentadShot(directionToShoot);
-                else if (rc.canFireTriadShot())
-                    rc.fireTriadShot(directionToShoot);
-                else
-                    rc.fireSingleShot(directionToShoot);
-            }
+    	RobotType myType = rc.getType();
+    	if (myType == RobotType.SOLDIER || myType == RobotType.TANK || myType == RobotType.SCOUT){
+	        MapLocation myLocation = rc.getLocation();
+	        //System.out.println(bots.getBotCounts(team.opponent()));
+	
+	        if (bots.getBotCounts(team.opponent()) > 0) {
+	            boolean single = rc.canFireSingleShot();
+	            boolean triad = rc.canFireTriadShot();
+	            boolean pentad = rc.canFirePentadShot();
+	            RobotInfo closestEnemy = bots.getClosestbot(team.opponent());
+	
+	            Direction directionToMove = myLocation.directionTo(closestEnemy.location);
+	            if (!rc.hasMoved() && rc.canMove(directionToMove)) {
+	                rc.move(directionToMove, .5f);
+	            }
+	
+	            if (single || triad || pentad) {
+	                Direction directionToShoot = myLocation.directionTo(closestEnemy.location);
+	                if (rc.canFirePentadShot())
+	                    rc.firePentadShot(directionToShoot);
+	                else if (rc.canFireTriadShot())
+	                    rc.fireTriadShot(directionToShoot);
+	                else
+	                    rc.fireSingleShot(directionToShoot);
+	            }
+	        }
+	        else {
+	            List<RobotInfo> teamBots = bots.getBots(rc.getTeam());
+	            if (teamBots.size() > 0) {
+	                Direction directionToFriend = myLocation.directionTo(teamBots.get(0).location);
+	                if (rc.canMove(directionToFriend)) {
+	                    tryMove(directionToFriend);
+	                }
+	            }
+	        }
+    	}
+    }
+    
+    /**
+     * Exchanges 10% of bullets for victory points every 100 rounds. If at the last round, donates all the bullets. 
+     * @throws GameActionException
+     */
+    public void donateBullets() throws GameActionException{
+        int round = rc.getRoundNum(); 
+        if (round >= rc.getRoundLimit() - 1) {
+            rc.donate(rc.getTeamBullets());
         }
         else {
-            List<RobotInfo> teamBots = bots.getBots(rc.getTeam());
-            if (teamBots.size() > 0) {
-                Direction directionToFriend = myLocation.directionTo(teamBots.get(0).location);
-                if (rc.canMove(directionToFriend)) {
-                    tryMove(directionToFriend);
-                }
+            if (round == 1 || round % 100 == 0) {
+                rc.donate((float) (0.1*rc.getTeamBullets()));
             }
         }
     }

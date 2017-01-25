@@ -15,6 +15,7 @@ public class Scout extends AbstractBot {
 	
 	public void run() throws GameActionException {
 		trees.update();
+		bots.update();
 		dodge();
 		ArrayList<TreeInfo> bulletTrees = trees.getBulletTrees();
 		if (bulletTrees.size() > 0){
@@ -22,7 +23,7 @@ public class Scout extends AbstractBot {
 				this.tryMove(rc.getLocation().directionTo(bulletTrees.get(0).location));
 			}
 		} else {
-			wander();
+			moveTowardsEnemiesOrTrees();
 		}
 		attack();
 	}
