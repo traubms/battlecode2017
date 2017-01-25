@@ -59,7 +59,6 @@ public class Lumberjack extends AbstractBot {
 			goal = trees.getClosestTree(Team.NEUTRAL).location;
 		} 
 		
-		
 		if (goal == null) {
 			wander();
 		} else if(!rc.getLocation().isWithinDistance(goal, (float) 2.4)){
