@@ -93,10 +93,43 @@ public class Gardener extends AbstractBot {
 	}
 
 	//TODO Make build robot logic
+	public boolean buildLogic() throws GameActionException {
+	    //check queue
+
+        //see if can build and want to build
+
+        //build
+
+        //remove from queue
+
+        //add to count of living bots of that type
+        return true;
+    }
 
     //TODO Make planting trees logic
+    public boolean plantLogic() throws GameActionException {
+	    //check trees around
+
+        //see if its reasonable to build a tree
+
+        //if so, build in the 4 / 6 hexagonal spots, leaving an exit route
+        return true;
+    }
 
     //TODO Make better movement logic
+    public boolean moveLogic() throws GameActionException {
+	    //check if there are enemies, maybe just scouts, within a certain distance or on trees
+
+        //if so, run away, notify soldier
+
+	    //check to see what I should be doing (e.g. finding a place to plant trees)
+
+        //try to sense such a location for building trees that is most convenient
+
+        //go there
+
+        return true;
+    }
 
 	public void waterAndMove() throws GameActionException {
 	    while (rc.canWater()) {
