@@ -7,6 +7,8 @@ import battlecode.common.RobotInfo;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.sun.tools.javac.util.List;
+
 import battlecode.common.Direction;
 import battlecode.common.RobotType;
 import battlecode.common.Team;
@@ -41,23 +43,59 @@ public class Archon extends AbstractBot {
         return null; //TODO: Change this null statement
     }
     
+    public int getTypeCount(RobotType type, Team t) {
+        int count = 0; 
+        List<RobotInfo> bots = (List<RobotInfo>) this.bots.getBots(t);
+        for(RobotInfo b : bots) {
+            if(b.getType() == type) {
+                count++; 
+            }
+        }
+        return count;
+    }
+    
+    public boolean noBots(RobotType type, Team t) {
+        return getTypeCount(type, t) == 0; 
+    }
+    
+    /*
+     * Priority Listing:
+     *   Tank
+     *   Lumberjack
+     *   Scout
+     *   Soldier
+     *   Tree
+     * 
+     * make soldier first but also doesn't make more gardeners than we need
+     */
     public void makeBuildOrders() throws GameActionException{
-		int lumbers, tree, scouts, tanks, soldiers;
+        int maxGardeners = 15; 
+		int lumbers, tree, scouts, tanks, soldiers, gardeners;
     	lumbers = (int) trees.getTreeCounts(Team.NEUTRAL) / 2;
     	tree = (int) Math.max(Math.random() + .2, 10 - trees.getTreeCounts(this.team));
-    	RobotInfo closestScout = findClosestRobotOfType(RobotType.SCOUT);
-    	if (closestScout == null)
+    	gardeners = (int) Math.min(rc.getTeamBullets() / 100, maxGardeners);
+    	if (noBots(RobotType.SCOUT, this.team))
     		scouts = 1;
     	else
     		scouts = 0;
-    	tanks = 0;
+    	tanks = 0; 
     	soldiers = (int) (bots.getBotCounts(team.opponent()) / 2);
-    	
+    	boolean noTanks = noBots(RobotType.TANK, this.team); 
+        boolean needSoldiers = getTypeCount(RobotType.SOLDIER, this.team) < soldiers; 
     	Map<Codes, Integer> orders = new HashMap<Codes, Integer>();
-    	orders.put(Codes.LUMBERJACK, lumbers);
-    	orders.put(Codes.TANK, tanks);
-    	orders.put(Codes.SCOUT, scouts);
-    	orders.put(Codes.SOLIDER, soldiers);
+    	if(!needSoldiers)
+    	    soldiers = 0; 
+    	if(noTanks && !needSoldiers) 
+    	    tanks = 1;
+    	if(getTypeCount(RobotType.LUMBERJACK, this.team) >= lumbers)
+    	    lumbers = 0;
+        if(getTypeCount(RobotType.GARDENER, this.team) >= gardeners)
+            gardeners = 0; 
+        orders.put(Codes.SOLIDER, soldiers);
+        orders.put(Codes.TANK, tanks);
+        orders.put(Codes.LUMBERJACK, lumbers);
+        orders.put(Codes.SCOUT, scouts);
+        orders.put(Codes.GARDENER, gardeners); 
     	orders.put(Codes.TREE, tree);
     	System.out.println(orders);
     	radio.makeBuildOrders(orders);
