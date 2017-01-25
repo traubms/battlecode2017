@@ -38,7 +38,7 @@ public class Archon extends AbstractBot {
     	    }
     	}
     	hireGardener(); 
-    	donateBullets(); 
+    	//donateBullets();
    }
     
     public RobotInfo findClosestRobotOfType(RobotType type) {

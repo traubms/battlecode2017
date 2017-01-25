@@ -13,6 +13,7 @@ public class Gardener extends AbstractBot {
 
 	public void run() throws GameActionException {
 	    trees.update();
+	    dodge();
 	    int bc = Clock.getBytecodeNum();
 	    followBuildCommands();
 	    System.out.println(Clock.getBytecodeNum() - bc);

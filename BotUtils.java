@@ -14,7 +14,7 @@ public class BotUtils {
     /**find intersection between two circles
     *
     * @param center0 center of first circle
-    * @param center1 cneter of second circle
+    * @param center1 center of second circle
     * @param radius0 radius of 1st circle
     * @param radius1 radius of 2nd circle
     *

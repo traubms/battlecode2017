@@ -15,6 +15,7 @@ public class Scout extends AbstractBot {
 	
 	public void run() throws GameActionException {
 		trees.update();
+		dodge();
 		ArrayList<TreeInfo> bulletTrees = trees.getBulletTrees();
 		if (bulletTrees.size() > 0){
 			if(!shake()){

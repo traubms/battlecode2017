@@ -15,6 +15,7 @@ public class Soldier extends AbstractBot {
 
 	public void run() throws GameActionException {
 		bots.update();
+		dodge();
 		MapLocation myLocation = rc.getLocation();
 		System.out.println(bots.getBotCounts(team.opponent()));
 
@@ -24,6 +25,11 @@ public class Soldier extends AbstractBot {
 			boolean pentad = rc.canFirePentadShot();
 			RobotInfo closestEnemy = bots.getClosestbot(team.opponent());
 
+			Direction directionToMove = myLocation.directionTo(closestEnemy.location);
+			if (rc.canMove(directionToMove)) {
+				rc.move(directionToMove, .5f);
+			}
+
 			if (single || triad || pentad) {
 				Direction directionToShoot = myLocation.directionTo(closestEnemy.location);
 				if (rc.canFirePentadShot())
@@ -32,11 +38,6 @@ public class Soldier extends AbstractBot {
 					rc.fireTriadShot(directionToShoot);
 				else
 					rc.fireSingleShot(directionToShoot);
-			}
-
-			Direction directionToMove = myLocation.directionTo(closestEnemy.location);
-			if (rc.canMove(directionToMove)) {
-				rc.move(directionToMove);
 			}
 		}
 	}
