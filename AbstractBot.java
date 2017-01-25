@@ -48,6 +48,26 @@ public abstract class AbstractBot {
         return tryMove(dir,20,7);
     }
     
+
+    /**basic function for moving to a map location*/
+    public boolean moveTo(MapLocation dest) throws GameActionException {
+        float distTo = rc.getLocation().distanceTo(dest);
+        Direction dirTo = rc.getLocation().directionTo(dest);
+
+        if (distTo > rc.getType().strideRadius) {
+            return tryMove(dirTo);
+        } else {
+            if (rc.canMove(dest)) {
+                rc.move(dest);
+                return true;
+            } else {
+                return tryMove(dirTo);
+                }
+            }
+    }
+
+    
+
     /**
      * Attempts to move in a given direction, while avoiding small obstacles direction in the path.
      *
@@ -233,4 +253,29 @@ public abstract class AbstractBot {
             }
         }
     }
+    
+
+    public void donateBullets2() throws GameActionException {
+        float round = rc.getRoundNum();
+        float numBullets = rc.getTeamBullets();
+        float conversion = (7.5f) + ((round * 12.5f) / 3000f);
+
+        if (numBullets / conversion > 1000) {
+            rc.donate(numBullets);
+        }
+    }
+
+    /**
+     * Returns the initial direction to the enemy archons
+     * @param mapLocation Location of robot
+     * @return Direction to the nearest enemy archon
+     * @throws GameActionException
+     */
+    public Direction directionToEnemyArchon(MapLocation mapLocation) throws GameActionException {
+        MapLocation[] locationsOfEnemyArchons = rc.getInitialArchonLocations(rc.getTeam().opponent());
+        Direction directionToEnemyArchon = mapLocation.directionTo(locationsOfEnemyArchons[0]);
+        return directionToEnemyArchon;
+    }
+    
+    
 }

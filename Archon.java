@@ -34,7 +34,7 @@ public class Archon extends AbstractBot {
     	} 
     	
     	if(this.trees.getBulletTrees().size() > 0) { // If there are bullet trees, build gardeners to make scouts. 
-    	    RobotInfo closestScout = findClosestRobotOfType(RobotType.SCOUT); 
+    	    RobotInfo closestScout = findClosestRobotOfType(RobotType.SCOUT);
     	    if(closestScout == null) {
     	        hireGardener();
     	        radio.addToBuildQueue(Codes.SCOUT);
@@ -44,7 +44,7 @@ public class Archon extends AbstractBot {
     	}
     	hireGardener(); 
     	radio.addToBuildQueue(Codes.SOLIDER);
-    	//donateBullets();
+    	donateBullets2();
    }
     
     public RobotInfo findClosestRobotOfType(RobotType type) {
