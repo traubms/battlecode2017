@@ -15,7 +15,6 @@ import battlecode.common.GameConstants;
 public abstract class AbstractBot {
 	
 	protected final float EPSILON = (float) 0.001;
-
 	protected RobotController rc;
 	protected Team team;
 	protected TreeReport trees;
@@ -32,56 +31,14 @@ public abstract class AbstractBot {
 	
 	public abstract void run() throws GameActionException;
 	
-	/**random direction */
-    static Direction randomDirection() throws GameActionException {
-        float k = ((float) Math.random() * (float) 2 * (float) Math.PI) - (float) Math.PI;
-        return new Direction(k);
-    }
 
+    
     /** Move in random direction*/
     public boolean wander() throws GameActionException {
-        Direction dir = randomDirection();
+        Direction dir = BotUtils.randomDirection();
         return tryMove(dir);
     }
     
-
-
-    /**find intersection between two circles
-     *
-     * @param center0 center of first circle
-     * @param center1 cneter of second circle
-     * @param radius0 radius of 1st circle
-     * @param radius1 radius of 2nd circle
-     *
-     * @return MapLocation[] of the intersection point(s) or null if they don't exist
-     *
-     * @throws GameActionException
-     */
-    public MapLocation[] findCircleIntersections(MapLocation center0, MapLocation center1, float radius0, float radius1) throws GameActionException {
-        float d = center0.distanceTo(center1);
-        if (d > radius0+radius1) return null;
-        if (d == radius0+radius1) {
-            MapLocation[] onePoint = {center0.add(center0.directionTo(center1), radius0)};
-            return onePoint;
-        }
-        if (center0.equals(center1)) return null;
-        else {
-            float a = (radius0*radius0 -radius1*radius1 +d*d) / (2*d);
-            float h = (float) Math.sqrt((double) radius0*radius0 - a*a);
-            MapLocation p2 = center0.add(center0.directionTo(center1), radius0);
-            float x3_1 = p2.x + h * (center1.y - center0.y) / d;
-            float y3_1 = p2.y - h * (center1.x - center0.x) / d;
-            float x3_2 = p2.x - h * (center1.y - center0.y) / d;
-            float y3_2 = p2.y + h * (center1.x - center0.x) / d;
-            MapLocation[] twoPoints = {new MapLocation(x3_1, y3_1), new MapLocation(x3_2, y3_2)};
-            return twoPoints;
-        }
-    }
-
-
-
-
-
     public boolean tryMove(Direction dir) throws GameActionException {
         return tryMove(dir,20,7);
     }
@@ -127,12 +84,6 @@ public abstract class AbstractBot {
     }
 
 
-    
-
-
-
-
-    
 
     public boolean willCollideWithMe(BulletInfo bullet) {
         MapLocation myLocation = rc.getLocation();
@@ -150,12 +101,8 @@ public abstract class AbstractBot {
         if (Math.abs(theta) > Math.PI / 2) {
             return false;
         }
-
-        // distToRobot is our hypotenuse, theta is our angle, and we want to know this length of the opposite leg.
-        // This is the distance of a line that goes from myLocation and intersects perpendicularly with propagationDirection.
-        // This corresponds to the smallest radius circle centered at our location that would intersect with the
-        // line that is the path of the bullet.
-        float perpendicularDist = (float) Math.abs(distToRobot * Math.sin(theta)); // soh cah toa :)
+        
+        float perpendicularDist = (float) Math.abs(distToRobot * Math.sin(theta));
 
         return (perpendicularDist <= rc.getType().bodyRadius);
     }

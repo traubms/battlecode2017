@@ -89,6 +89,13 @@ public class TreeReport {
 	}
 	
 	private void reset(int length){
+		this.trees = new HashMap<Team, TreeInfo[]>();
+		this.counts = new HashMap<Team, Integer>();
+		this.withinInteract = new HashMap<Team, Integer>();
+		this.lowestHealthTree = new HashMap<Team, TreeInfo>();
+		this.lowestHealthValue = new HashMap<Team, Float>();
+		this.containsBullets = new ArrayList<TreeInfo>();
+		this.containsRobot = new ArrayList<TreeInfo>();
 		for(Team t: Team.values()){
 			this.trees.put(t, new TreeInfo[length]);
 			this.counts.put(t, 0);
@@ -96,8 +103,7 @@ public class TreeReport {
 			this.lowestHealthTree.put(t, null);
 			this.lowestHealthValue.put(t, (float) 1000000);
 		}
-		this.containsBullets = new ArrayList<TreeInfo>();
-		this.containsRobot = new ArrayList<TreeInfo>();
+		
 	}
 	
 	public void reset(){
