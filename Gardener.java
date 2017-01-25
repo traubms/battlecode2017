@@ -78,5 +78,44 @@ public class Gardener extends AbstractBot {
         // TODO
     }
 
+	/**
+	 * Used by a gardener to build trees and robots.
+	 *
+	 * @throws GameActionException
+	 */
+	static void buildGardener() throws GameActionException {
+
+		// sense the archon
+		Team team = rc.getTeam();
+		RobotInfo[] robotInfos = rc.senseNearbyRobots(-1, team);
+		Direction directionToMove = null;
+		for (RobotInfo robotInfo : robotInfos) {
+			if (robotInfo.getType().equals(RobotType.ARCHON)) {
+				Direction directionToArchon = rc.getLocation().directionTo(robotInfo.location);
+				directionToMove = directionToArchon.opposite();
+				if (rc.canMove(directionToMove))
+					rc.move(directionToMove, 2f);
+			}
+		}
+
+		Direction directionToBuild = directionToMove;
+		if (rc.canBuildRobot(RobotType.SOLDIER, directionToBuild)) {
+			rc.buildRobot(RobotType.SOLDIER, directionToBuild);
+		}
+
+		if (rc.canPlantTree(directionToBuild)) {
+			rc.plantTree(directionToBuild);
+		}
+
+		float radiansToBuild = directionToBuild.getAngleDegrees() + ((float) Math.PI / 3);
+		float step = (float) Math.PI / 3;
+		for (float radians = radiansToBuild; radians < 2 * (float) Math.PI + radiansToBuild; radians = radians + step) {
+			Direction directionToPlant = new Direction(radians);
+			if (rc.canPlantTree(directionToPlant)) {
+				rc.plantTree(directionToPlant);
+			}
+		}
+	}
+
 
 }
