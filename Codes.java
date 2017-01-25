@@ -3,11 +3,12 @@ package battlecode2017;
 import battlecode.common.RobotType;
 
 public enum Codes {
-	TREE(2),
-	LUMBERJACK(3, RobotType.LUMBERJACK),
-	SCOUT(5, RobotType.SCOUT),
-	SOLIDER(7, RobotType.SOLDIER),
-	TANK(11, RobotType.TANK);
+	TREE(2), //coded by Traub
+	LUMBERJACK(3, RobotType.LUMBERJACK), //coded by Traub
+	SCOUT(5, RobotType.SCOUT), //coded by Traub
+	SOLIDER(7, RobotType.SOLDIER), //coded by Traub
+	TANK(11, RobotType.TANK); //coded by Traub
+
 	
 	private int value;
 	private RobotType robotType;

@@ -1,10 +1,10 @@
 package battlecode2017;
 
 public enum Channels {
-	BUILD(1),
-	SHOULD_BUILD(2),
-	GARDENER_COMMANDS(3),
-	GARDENER(4);
+	BUILD(1), //coded by Traub
+	SHOULD_BUILD(2), //coded by Traub
+	GARDENER_COMMANDS(3), //coded by Traub
+	GARDENER(4); //coded by Traub
 	
 	private int value;
 	
