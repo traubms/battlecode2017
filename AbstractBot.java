@@ -15,6 +15,8 @@ import battlecode.common.GameConstants;
 public abstract class AbstractBot {
 	
 	protected final float EPSILON = (float) 0.001;
+	protected final float TREE_WATERING_THRESHOLD = (float) 45;
+
 	protected RobotController rc;
 	protected Team team;
 	protected TreeReport trees;
@@ -41,6 +43,22 @@ public abstract class AbstractBot {
 
     public boolean tryMove(Direction dir) throws GameActionException {
         return tryMove(dir,20,7);
+    }
+    
+    /**
+     * Exchanges 10% of bullets for victory points every 100 rounds. If at the last round, donates all the bullets. 
+     * @throws GameActionException
+     */
+    public void donateBullets() throws GameActionException{
+        int round = rc.getRoundNum(); 
+        if (round >= rc.getRoundLimit() - 1) {
+            rc.donate(rc.getTeamBullets());
+        }
+        else {
+            if (round == 1 || round % 100 == 0) {
+                rc.donate((float) (0.1*rc.getTeamBullets()));
+            }
+        }
     }
     
     /**

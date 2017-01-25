@@ -2,6 +2,7 @@ package battlecode2017;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import battlecode.common.MapLocation;
 import battlecode.common.RobotController;
@@ -11,8 +12,8 @@ import battlecode.common.TreeInfo;
 public class TreeReport {
 
 	private RobotController rc;
-	private HashMap<Team, TreeInfo[]> trees;
-	private HashMap<Team, Integer> counts;
+	private TreeInfo[] treeList;
+	private HashMap<Team, List<TreeInfo>> trees;
 	private HashMap<Team, Integer> withinInteract;
 	private HashMap<Team, Float> lowestHealthValue;
 	private HashMap<Team, TreeInfo> lowestHealthTree;
@@ -26,8 +27,9 @@ public class TreeReport {
 	}
 	
 	public void update(){
-		TreeInfo[] treeList = rc.senseNearbyTrees();
 		reset(treeList.length);
+		treeList = rc.senseNearbyTrees();
+		
 		TreeInfo tree;
 		int count;
 		boolean canInteract = true;
@@ -35,12 +37,9 @@ public class TreeReport {
 			tree = treeList[i];
 			if (canInteract)
 				canInteract = rc.canInteractWithTree(tree.location);
-			count = this.counts.get(tree.team);
-			this.trees.get(tree.team)[count] = tree;
-			count++;
-			this.counts.replace(tree.team, count);
+			this.trees.get(tree.team).add(tree);
 			if (canInteract){
-				this.withinInteract.replace(tree.team, count);
+				this.withinInteract.replace(tree.team, this.trees.get(tree.team).size());
 				if (tree.health < this.lowestHealthValue.get(tree.team)){
 					this.lowestHealthValue.replace(tree.team, tree.health);
 					this.lowestHealthTree.replace(tree.team, tree);
@@ -56,16 +55,32 @@ public class TreeReport {
 	public TreeInfo getWeakestTree(Team t){
 		return this.lowestHealthTree.get(t);
 	}
-	
+	public TreeInfo getWeakestTreeWithinInteract(Team t) {
+		TreeInfo weakest = getClosestTree(t);
+		for (TreeInfo ti : getTreesWithinInteract(t)) {
+			if (weakest.health > ti.health) {
+				weakest = ti;
+			}
+		}
+		return weakest;
+	}
+
 	public TreeInfo getClosestTree(Team t){
-		if (this.counts.get(t) > 0)
-			return this.trees.get(t)[0];
+		if (this.trees.get(t).size() > 0)
+			return this.trees.get(t).get(0);
+		else
+			return null;
+	}
+	
+	public TreeInfo getClosestTree(){
+		if (this.treeList.length > 0)
+			return this.treeList[0];
 		else
 			return null;
 	}
 	
 	public int getTreeCounts(Team t){
-		return this.counts.get(t);
+		return this.trees.get(t).size();
 	}
 	
 	public int getTotalTrees(){
@@ -80,30 +95,32 @@ public class TreeReport {
 		return this.containsRobot;
 	}
 	
+	public List<TreeInfo> getTreesWithinInteract(Team t){
+		return this.trees.get(t).subList(0, this.withinInteract.get(t));
+	}
+	
 	public TreeInfo pickRandomTree(Team t){
 		if (this.withinInteract.get(t) > 0){
 			int index = (int) Math.random() * this.withinInteract.get(t);
-			return this.trees.get(t)[index];
+			return this.trees.get(t).get(index);
 		} else
 			return null;
 	}
 	
 	private void reset(int length){
-		this.trees = new HashMap<Team, TreeInfo[]>();
-		this.counts = new HashMap<Team, Integer>();
+		this.treeList = new TreeInfo[0];
+		this.trees = new HashMap<Team, List<TreeInfo>>();
 		this.withinInteract = new HashMap<Team, Integer>();
 		this.lowestHealthTree = new HashMap<Team, TreeInfo>();
 		this.lowestHealthValue = new HashMap<Team, Float>();
 		this.containsBullets = new ArrayList<TreeInfo>();
 		this.containsRobot = new ArrayList<TreeInfo>();
 		for(Team t: Team.values()){
-			this.trees.put(t, new TreeInfo[length]);
-			this.counts.put(t, 0);
+			this.trees.put(t, new ArrayList<TreeInfo>(length));
 			this.withinInteract.put(t, 0);
 			this.lowestHealthTree.put(t, null);
 			this.lowestHealthValue.put(t, (float) 1000000);
 		}
-		
 	}
 	
 	public void reset(){
