@@ -275,7 +275,7 @@ public abstract class AbstractBot {
                 }
                 float distToEnemy = rc.getLocation().distanceTo(closestEnemy.location);
 
-                if (rc.canFirePentadShot() && distToEnemy < pentadRange)  //TODO take into account that friendlies might be in the way?
+                if (rc.canFirePentadShot() && distToEnemy < pentadRange)
                     rc.firePentadShot(directionToShoot);
                 else if (rc.canFirePentadShot() && nearestBadTree!= null && myLocation.distanceTo(nearestBadTree.location) < (float) 1.5
                         && directionDifference < (float) 50) {
