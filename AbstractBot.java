@@ -18,11 +18,13 @@ public abstract class AbstractBot {
 	protected Team team;
 	protected TreeReport trees;
 	protected final float EPSILON = (float) 0.001;
+	protected Radio radio;
 	
 	public AbstractBot(RobotController rc){
 		this.rc = rc;
 		this.team = rc.getTeam();
 		this.trees = new TreeReport(rc);
+		this.radio = new Radio(rc);
 	}
 	
 	public abstract void run();
