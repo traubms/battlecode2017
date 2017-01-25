@@ -24,7 +24,7 @@ public class BotReport {
 	
 	public void update(){
 		RobotInfo[] botList = rc.senseNearbyRobots();
-		reset(botList.length);
+		reset();
 		RobotInfo bot;
 		int count;
 		for(int i = 0; i < botList.length; i++){
@@ -65,7 +65,7 @@ public class BotReport {
 		return getBotCounts(Team.A) + getBotCounts(Team.B);
 	}
 	
-	private void reset(int length){
+	private void reset(){
 		this.bots = new HashMap<Team, List<RobotInfo>>();
 		this.counts = new HashMap<Team, Integer>();
 		this.lowestHealthValue = new HashMap<Team, Float>();
@@ -73,16 +73,11 @@ public class BotReport {
 
 		for(Team t: Team.values()){
 			if (t != Team.NEUTRAL){
-				this.bots.put(t, new ArrayList<RobotInfo>(length));
+				this.bots.put(t, new ArrayList<RobotInfo>());
 				this.counts.put(t, 0);
 				this.lowestHealthValue.put(t, (float) 1000000);
 			}
 		}
-	}
-	
-	public void reset(){
-		reset(0);
-	}
-	
+	}	
 }
 

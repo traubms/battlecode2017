@@ -27,7 +27,7 @@ public class TreeReport {
 	}
 	
 	public void update(){
-		reset(treeList.length);
+		reset();
 		treeList = rc.senseNearbyTrees();
 		
 		TreeInfo tree;
@@ -98,7 +98,7 @@ public class TreeReport {
 			return null;
 	}
 	
-	private void reset(int length){
+	private void reset(){
 		this.treeList = new TreeInfo[0];
 		this.trees = new HashMap<Team, List<TreeInfo>>();
 		this.withinInteract = new HashMap<Team, Integer>();
@@ -107,15 +107,11 @@ public class TreeReport {
 		this.containsBullets = new ArrayList<TreeInfo>();
 		this.containsRobot = new ArrayList<TreeInfo>();
 		for(Team t: Team.values()){
-			this.trees.put(t, new ArrayList<TreeInfo>(length));
+			this.trees.put(t, new ArrayList<TreeInfo>());
 			this.withinInteract.put(t, 0);
 			this.lowestHealthTree.put(t, null);
 			this.lowestHealthValue.put(t, (float) 1000000);
 		}
-	}
-	
-	public void reset(){
-		reset(0);
 	}
 	
 }

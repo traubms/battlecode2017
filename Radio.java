@@ -3,6 +3,7 @@ package battlecode2017;
 import java.util.HashMap;
 import java.util.Map;
 
+import battlecode.common.Clock;
 import battlecode.common.GameActionException;
 import battlecode.common.RobotController;
 import battlecode.common.RobotType;
@@ -43,25 +44,30 @@ public class Radio {
 	}
 	
 	public Map<Codes, Integer> checkBuildOrders() throws GameActionException{
+		int bc = Clock.getBytecodeNum();
 		float message = listen(Channels.BUILD);
+		System.out.println(Clock.getBytecodeNum() - bc);
 		Map<Codes, Integer> counts = new HashMap<Codes, Integer>();
-		int count;
-		for(Codes bot: BOTS){
-			count = 0;
-			while (message % bot.getValue() == 0){
-				count++;
-				message /= bot.getValue();
+		if (message > 1){
+			int count;
+			for(Codes bot: BOTS){
+				count = 0;
+				while (message > 0 && message % bot.getValue() == 0){
+					count++;
+					message /= bot.getValue();
+				}
+				if (count > 0)
+					counts.put(bot, count);
 			}
-			if (count > 0)
-				counts.put(bot, count);
 		}
 		return counts;
 	}
 	
 	public void makeBuildOrders(Map<Codes, Integer> counts) throws GameActionException{
-		int message = 0;
+		int message = 1;
 		for(Codes bot: counts.keySet()){
-			message += bot.getValue() * counts.get(bot);
+			for(int i = 0; i < counts.get(bot); i++)
+				message *= bot.getValue();
 		}
 		broadcast(Channels.BUILD, message);
 	}
@@ -70,6 +76,14 @@ public class Radio {
 		float message = listen(Channels.BUILD);
 		if(message % bot.getValue() != 0)
 			broadcast(Channels.BUILD, message / bot.getValue());
+	}
+	
+	public void addToBuildQueue(Codes bot) throws GameActionException{
+		float message = listen(Channels.BUILD);
+		if (message == 0)
+			message = 1;
+		if(message % bot.getValue() != 0)
+			broadcast(Channels.BUILD, message * bot.getValue());
 	}
 	
 

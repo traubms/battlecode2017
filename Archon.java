@@ -15,6 +15,7 @@ public class Archon extends AbstractBot {
     public void run() throws GameActionException {
 	    trees.update();
     	tryPlantGardener();
+    	radio.addToBuildQueue(Codes.LUMBERJACK);
     }
 
 
