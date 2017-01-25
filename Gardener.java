@@ -35,8 +35,14 @@ public class Gardener extends AbstractBot {
 	    trees.update();
 	    bots.update();
 	    checkOnTrees();
-	    waterAndMove();
-	    followBuildCommands();
+	    
+	    TreeInfo weakestTree = trees.getWeakestTreeWithinInteract(team);
+	    if(weakestTree != null && weakestTree.health < GameConstants.BULLET_TREE_MAX_HEALTH / 2){
+	    	this.moveTo(weakestTree.location);
+	    	this.waterWeakest();
+	    } else{
+	    	followBuildCommands();
+	    }
 	    
 	}
 
@@ -210,8 +216,9 @@ public class Gardener extends AbstractBot {
      */
 	public boolean waterWeakest() throws GameActionException {
 	    TreeInfo weakest = trees.getWeakestTreeWithinInteract(team);
-        if (weakest != null && weakest.health <= TREE_WATERING_THRESHOLD && rc.canWater(weakest.location)) {
-            rc.water(weakest.location);
+        if (weakest != null){
+        	while(rc.canWater(weakest.location)) 
+        		rc.water(weakest.location);
             return true;
         } else {
             return false;
@@ -354,7 +361,7 @@ public class Gardener extends AbstractBot {
 	}
 	
 	public List<MapLocation> calculateTreeTargets(){
-		return calculateTreeTargets(8);
+		return calculateTreeTargets(10);
 	}
 	
 	public void checkOnTrees() throws GameActionException{
