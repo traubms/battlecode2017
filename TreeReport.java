@@ -55,7 +55,16 @@ public class TreeReport {
 	public TreeInfo getWeakestTree(Team t){
 		return this.lowestHealthTree.get(t);
 	}
-	
+	public TreeInfo getWeakestTreeWithinInteract(Team t) {
+		TreeInfo weakest = getClosestTree(t);
+		for (TreeInfo ti : getTreesWithinInteract(t)) {
+			if (weakest.health > ti.health) {
+				weakest = ti;
+			}
+		}
+		return weakest;
+	}
+
 	public TreeInfo getClosestTree(Team t){
 		if (this.trees.get(t).size() > 0)
 			return this.trees.get(t).get(0);

@@ -23,6 +23,7 @@ public class Lumberjack extends AbstractBot {
 		List<TreeInfo> enemyCanInteract = trees.getTreesWithinInteract(team.opponent());
 		List<TreeInfo> neutralCanInteract = trees.getTreesWithinInteract(team.NEUTRAL);
 		List<TreeInfo> mineCanInteract = trees.getTreesWithinInteract(team);
+
 		int enemiesCount = bots.getBotCounts(team.opponent());
 		int enemiesTreeCount = enemyCanInteract.size();
 		int neutralTreeCount = neutralCanInteract.size();
@@ -64,6 +65,7 @@ public class Lumberjack extends AbstractBot {
 		} else if(!rc.getLocation().isWithinDistance(goal, (float) 2.4)){
 			this.tryMove(rc.getLocation().directionTo(goal));
 		}
+
     }
 	
 	public void strike() throws GameActionException{
@@ -77,6 +79,7 @@ public class Lumberjack extends AbstractBot {
 			rc.chop(id);
 		}
 	}
+	
 	
 	
 }
