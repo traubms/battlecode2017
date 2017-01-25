@@ -25,18 +25,14 @@ public class Gardener extends AbstractBot {
 			}
 		}
 		this.treeTargets = calculateTreeTargets();
+		this.builtTrees = new ArrayList<MapLocation>();
 		this.makeTree = false;
 	}
 
 	public void run() throws GameActionException {
 	    trees.update();
 	    bots.update();
-//	    if (makeTree){
-//	    	plantTreeInFormation();
-//	    	waterWeakest();
-//	    } else {
-//	    	waterAndMove();
-//	    }
+	    checkOnTrees();
 	    waterAndMove();
 	    followBuildCommands();
 	    
@@ -105,8 +101,9 @@ public class Gardener extends AbstractBot {
     
     public void followBuildCommands() throws GameActionException{
     	Map<Codes, Integer> orders = radio.checkBuildOrders();
-    	for(Codes code: orders.keySet()){
-    		if(orders.get(code) > 0){
+    	Codes[] botOrder = {Codes.TANK, Codes.LUMBERJACK, Codes.SCOUT, Codes.SOLIDER, Codes.TREE};
+    	for(Codes code: botOrder){
+    		if(orders.containsKey(code) && orders.get(code) > 0){
     			if (build(code)){
     				radio.reportBuild(code);
     				break;
@@ -353,19 +350,23 @@ public class Gardener extends AbstractBot {
 	public void checkOnTrees() throws GameActionException{
 		int i = 0;
 		for(MapLocation loc: builtTrees){
-			if(rc.senseTreeAtLocation(loc) == null){
+			if(rc.canSenseLocation(loc) && rc.senseTreeAtLocation(loc) == null){
 				this.treeTargets.add(0, builtTrees.remove(i));
+				System.out.println("Lost a tree! " + loc);
 			}
 			i++;
 		}
 		i = 0;
 		for(MapLocation loc: this.treeTargets){
-			if(rc.senseTreeAtLocation(loc) != null){
+			if(rc.canSenseLocation(loc) && rc.senseTreeAtLocation(loc) != null){
+				System.out.println("Found a tree! " + loc);
 				this.builtTrees.add(0, treeTargets.remove(i));
 			}
 			i++;
 		}
 	}
+	
+	
 
 
 }
