@@ -5,6 +5,7 @@ import battlecode.common.RobotController;
 import battlecode.common.RobotInfo;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import battlecode.common.Direction;
@@ -13,8 +14,11 @@ import battlecode.common.Team;
 
 public class Archon extends AbstractBot {
     
+	private int scoutsMade;
+	
 	public Archon(RobotController rc) {
 		super(rc);
+		this.scoutsMade = 0;
 	}
 
 	/*
@@ -27,8 +31,7 @@ public class Archon extends AbstractBot {
     public void run() throws GameActionException {
 	    trees.update();
     	bots.update();
-		makeBuildOrders();
-    	hireGardener(); 
+		makeBuildOrders(); 
     	donateBullets2();
    }
     
@@ -41,25 +44,69 @@ public class Archon extends AbstractBot {
         return null; //TODO: Change this null statement
     }
     
+    public int getTypeCount(RobotType type, Team t) {
+        int count = 0; 
+        List<RobotInfo> bots = (List<RobotInfo>) this.bots.getBots(t);
+        for(RobotInfo b : bots) {
+            if(b.getType() == type) {
+                count++; 
+            }
+        }
+        return count;
+    }
+    
+    public boolean noBots(RobotType type, Team t) {
+        return getTypeCount(type, t) == 0; 
+    }
+    
+    /*
+     * Priority Listing:
+     *   Tank
+     *   Lumberjack
+     *   Scout
+     *   Soldier
+     *   Tree
+     * 
+     * make soldier first but also doesn't make more gardeners than we need
+     */
     public void makeBuildOrders() throws GameActionException{
-		int lumbers, tree, scouts, tanks, soldiers;
-    	lumbers = (int) trees.getTreeCounts(Team.NEUTRAL) / 2;
-    	tree = (int) Math.max(Math.random() + .2, 10 - trees.getTreeCounts(this.team));
-    	RobotInfo closestScout = findClosestRobotOfType(RobotType.SCOUT);
-    	if (closestScout == null)
-    		scouts = 1;
-    	else
-    		scouts = 0;
-    	tanks = 0;
-    	soldiers = (int) (bots.getBotCounts(team.opponent()) / 2);
+        int maxGardeners = 15; 
+		int lumbers, tree, scouts, tanks, soldiers, gardeners;
     	
+		//LumberJacks
+		lumbers = (int) trees.getTreeCounts(Team.NEUTRAL) / 2;
+    	
+		//Trees
+		tree = (int) Math.max(Math.random() + .2, 10 - trees.getTreeCounts(this.team));
+    	
+		//Gardeners
+		gardeners = (int) Math.min(rc.getTeamBullets() / 100, maxGardeners);
+		
+		//Scout
+    	scouts = (int) (Math.random() + .3);
+    	
+    	//Tanks
+    	tanks = 0; 
+    	
+    	//Soldiers
+    	soldiers = 1;
+    	
+    	boolean noTanks = noBots(RobotType.TANK, this.team); 
+        boolean needSoldiers = getTypeCount(RobotType.SOLDIER, this.team) < soldiers; 
     	Map<Codes, Integer> orders = new HashMap<Codes, Integer>();
-    	orders.put(Codes.LUMBERJACK, lumbers);
-    	orders.put(Codes.TANK, tanks);
-    	orders.put(Codes.SCOUT, scouts);
-    	orders.put(Codes.SOLIDER, soldiers);
+    	
+    	if(soldiers > 0 || lumbers > 0)
+    		tree = 0;
+        if(getTypeCount(RobotType.GARDENER, this.team) >= gardeners)
+            gardeners = 0; 
+        orders.put(Codes.SOLIDER, soldiers);
+        orders.put(Codes.TANK, tanks);
+        orders.put(Codes.LUMBERJACK, lumbers);
+        orders.put(Codes.SCOUT, scouts);
     	orders.put(Codes.TREE, tree);
     	System.out.println(orders);
+    	if (gardeners > 0)
+    		hireGardener();
     	radio.makeBuildOrders(orders);
     }
     
