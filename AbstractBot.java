@@ -185,12 +185,15 @@ public abstract class AbstractBot {
     	}
     }
 
+
+
     /**
      * Attacks by shooting either a single, triad, or pentad shot.
      * Only called by soldiers, scouts, and tanks.
      *
      * @throws GameActionException
      */
+
     public void attack() throws GameActionException {
         MapLocation myLocation = rc.getLocation();
         //System.out.println(bots.getBotCounts(team.opponent()));
@@ -203,27 +206,36 @@ public abstract class AbstractBot {
 
             Direction directionToMove = myLocation.directionTo(closestEnemy.location);
             if (rc.canMove(directionToMove)) {
-                rc.move(directionToMove, .5f);
+                tryMove(directionToMove, 10, 2);
             }
 
             if (single || triad || pentad) {
                 Direction directionToShoot = myLocation.directionTo(closestEnemy.location);
-                if (rc.canFirePentadShot())  //TODO take into account that friendlies might be in the way?
+
+                //setting appropriate ranges based on type of enemy to reduce wasted bullets and friendly fire
+                //tweak the hardcoded numbers as appropriate
+                float pentadRange = (float) 0.766 + rc.getType().bodyRadius;
+                float triadRange = (float) 1.074 + rc.getType().bodyRadius;
+                float singleRange = (float) 1.8 + rc.getType().bodyRadius;
+                if (closestEnemy.getType().equals(RobotType.ARCHON) || closestEnemy.getType().equals(RobotType.TANK)) {
+                    pentadRange = pentadRange + (float) 1;
+                    triadRange = triadRange + (float) 1.3;
+                    singleRange = singleRange + (float) 2.5;
+                }
+                float distToEnemy = rc.getLocation().distanceTo(closestEnemy.location);
+
+                if (rc.canFirePentadShot() && distToEnemy < pentadRange)  //TODO take into account that friendlies might be in the way?
                     rc.firePentadShot(directionToShoot);
-                else if (rc.canFireTriadShot())
+                else if (rc.canFireTriadShot() && distToEnemy < triadRange)
                     rc.fireTriadShot(directionToShoot);
-                else
+                else if (distToEnemy < singleRange)
                     rc.fireSingleShot(directionToShoot);
             }
         }
         else {
-            List<RobotInfo> teamBots = bots.getBots(rc.getTeam());
-            if (teamBots.size() > 0) {
-                Direction directionToFriend = myLocation.directionTo(teamBots.get(0).location);
-                if (rc.canMove(directionToFriend)) {
-                    tryMove(directionToFriend);
-                }
-            }
+            RobotInfo inDanger = bots.getWeakestbot(team);
+            if (!inDanger.equals(null)) tryMove(rc.getLocation().directionTo(inDanger.location));
+
         }
     }
 
@@ -234,7 +246,7 @@ public abstract class AbstractBot {
      * @throws GameActionException
      */
     public Direction directionToEnemyArchon(MapLocation mapLocation) throws GameActionException {
-        MapLocation[] locationsOfEnemyArchons = rc.getInitialArchonLocations(rc.getTeam().opponent());
+        MapLocation[] locationsOfEnemyArchons = rc.getInitialArchonLocations(team.opponent());
         Direction directionToEnemyArchon = mapLocation.directionTo(locationsOfEnemyArchons[0]);
         return directionToEnemyArchon;
     }
