@@ -2,6 +2,7 @@ package battlecode2017;
 
 import battlecode.common.*;
 
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -30,6 +31,7 @@ public class Gardener extends AbstractBot {
 	}
 
 	public void run() throws GameActionException {
+	    bots.update();
 	    trees.update();
 	    bots.update();
 	    checkOnTrees();
@@ -171,9 +173,14 @@ public class Gardener extends AbstractBot {
     //TODO Make better movement logic
     public boolean moveLogic() throws GameActionException {
 	    //check if there are enemies, maybe just scouts, within a certain distance or on trees
-
+        RobotInfo nearestEnemy = bots.getClosestbot(team.opponent());
+        boolean flee = (!nearestEnemy.equals(null));
         //if so, run away, notify soldier
-
+        if (flee) {
+            Direction fleeTo = nearestEnemy.location.directionTo(rc.getLocation());
+            boolean moved = tryMove(fleeTo);
+            if (moved) return true; //work in progress
+        }
 	    //check to see what I should be doing (e.g. finding a place to plant trees)
 
         //try to sense such a location for building trees that is most convenient
