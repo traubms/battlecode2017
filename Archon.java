@@ -24,7 +24,7 @@ public class Archon extends AbstractBot {
 	    trees.update();
     	bots.update();
 		
-    	if(trees.getTreeCounts(Team.NEUTRAL) > 0) { // If there's too many trees nearby w/in radius, build lumberjack
+    	if(trees.getTreeCounts(Team.NEUTRAL) > 3) { // If there's too many trees nearby w/in radius, build lumberjack
     	    hireGardener();  
     	    radio.addToBuildQueue(Codes.LUMBERJACK);
     	} 
@@ -43,6 +43,7 @@ public class Archon extends AbstractBot {
     	    }
     	}
     	hireGardener(); 
+    	radio.addToBuildQueue(Codes.SOLIDER);
     	//donateBullets();
    }
     
