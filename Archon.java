@@ -83,7 +83,7 @@ public class Archon extends AbstractBot {
 		gardeners = (int) Math.min(rc.getTeamBullets() / 100, maxGardeners);
 		
 		//Scout
-    	scouts = 0;
+    	scouts = (int) (Math.random() + .3);
     	
     	//Tanks
     	tanks = 0; 
@@ -95,12 +95,8 @@ public class Archon extends AbstractBot {
         boolean needSoldiers = getTypeCount(RobotType.SOLDIER, this.team) < soldiers; 
     	Map<Codes, Integer> orders = new HashMap<Codes, Integer>();
     	
-    	if(!needSoldiers)
-    	    soldiers = 0; 
-    	if(noTanks && !needSoldiers) 
-    	    tanks = 1;
-    	if(getTypeCount(RobotType.LUMBERJACK, this.team) >= lumbers)
-    	    lumbers = 0;
+    	if(soldiers > 0 || lumbers > 0)
+    		tree = 0;
         if(getTypeCount(RobotType.GARDENER, this.team) >= gardeners)
             gardeners = 0; 
         orders.put(Codes.SOLIDER, soldiers);

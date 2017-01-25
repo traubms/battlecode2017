@@ -1,6 +1,7 @@
 package battlecode2017;
 
 import battlecode.common.GameActionException;
+import battlecode.common.MapLocation;
 import battlecode.common.RobotController;
 
 public class Scout extends AbstractBot {
@@ -15,8 +16,11 @@ public class Scout extends AbstractBot {
         bots.update();
         dodge();
         shake();
-        moveToArchon();
-        //moveTowardsOrWander(nearestEnemyBotOrTreeOrBulletTree());
+        MapLocation goal = nearestEnemyBotOrTreeOrBulletTree();
+        if (goal == null)
+            wander();
+        else
+        	moveTowardsOrWander(goal);
         attack();
     }
 }

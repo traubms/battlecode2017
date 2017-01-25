@@ -108,7 +108,7 @@ public class Gardener extends AbstractBot {
     
     public void followBuildCommands() throws GameActionException{
     	Map<Codes, Integer> orders = radio.checkBuildOrders();
-    	Codes[] botOrder = {Codes.TANK, Codes.LUMBERJACK, Codes.SCOUT, Codes.SOLIDER, Codes.TREE};
+    	Codes[] botOrder = {Codes.TANK, Codes.LUMBERJACK, Codes.SOLIDER, Codes.SCOUT, Codes.TREE};
     	for(Codes code: botOrder){
     		if(orders.containsKey(code) && orders.get(code) > 0){
     			if (build(code)){
