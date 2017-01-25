@@ -36,8 +36,6 @@ public abstract class AbstractBot {
 	
 	public abstract void run() throws GameActionException;
 	
-
-    
     /** Move in random direction*/
     public boolean wander() throws GameActionException {
         Direction dir = BotUtils.randomDirection();
@@ -48,21 +46,6 @@ public abstract class AbstractBot {
         return tryMove(dir,20,7);
     }
     
-    /**
-     * Exchanges 10% of bullets for victory points every 100 rounds. If at the last round, donates all the bullets. 
-     * @throws GameActionException
-     */
-    public void donateBullets() throws GameActionException{     //TODO change this to not waste bullets by truncation
-        int round = rc.getRoundNum(); 
-        if (round >= rc.getRoundLimit() - 1) {
-            rc.donate(rc.getTeamBullets());
-        }
-        else {
-            if (round == 1 || round % 100 == 0) {
-                rc.donate((float) (0.1*rc.getTeamBullets()));
-            }
-        }
-    }
 
     /**basic function for moving to a map location*/
     public boolean moveTo(MapLocation dest) throws GameActionException {
@@ -81,16 +64,9 @@ public abstract class AbstractBot {
             }
     }
 
-
-
-
-    public void donateBullets2() throws GameActionException {
-        float round = rc.getRoundNum();
-        float numBullets = rc.getTeamBullets();
-        float conversion = (7.5f) + ((round * 12.5f) / 3000f);
-
-        if (numBullets / conversion > 1000) {
-            rc.donate(numBullets);
+    public void donateBullets3() throws GameActionException {
+        if (rc.getTeamBullets() > 1000) {
+            rc.donate(rc.getTeamBullets());
         }
     }
     
@@ -134,7 +110,66 @@ public abstract class AbstractBot {
         // A move never happened, so return false.
         return false;
     }
-
+    
+    public void moveTowardsEnemiesOrTrees() throws GameActionException{
+		MapLocation goal = null;
+		if (bots.getBotCounts(team.opponent()) > 0){ // move to opponent
+			goal = bots.getClosestbot(team.opponent()).location;
+		} else if (trees.getTreeCounts(team.opponent()) > 0){ // move to enemy tree
+			goal = trees.getClosestTree(team.opponent()).location;
+		} else if (trees.getTreeCounts(Team.NEUTRAL) > 0){ // move to neutral tree
+			goal = trees.getClosestTree(Team.NEUTRAL).location;
+		} 
+		
+		if (goal == null) {
+			wander();
+		} else if(!rc.getLocation().isWithinDistance(goal, (float) 2.4)){
+			this.tryMove(rc.getLocation().directionTo(goal));
+		}
+    }
+    
+    public void moveTowardsOrWander(MapLocation goal, float tol) throws GameActionException{
+    	if (goal == null) {
+			wander();
+		} else if(!rc.getLocation().isWithinDistance(goal, tol)){
+			this.moveTo(goal);
+		}
+    }
+    
+    public void moveTowardsOrWander(MapLocation goal) throws GameActionException{
+    	moveTowardsOrWander(goal, this.EPSILON);
+    }
+    
+    
+    public MapLocation nearestEnemyBotOrTree(){
+    	if (bots.getBotCounts(team.opponent()) > 0){ // move to opponent
+			return bots.getClosestbot(team.opponent()).location;
+		} else if (trees.getTreeCounts(team.opponent()) > 0){ // move to enemy tree
+			return trees.getClosestTree(team.opponent()).location;
+		} else {
+			return null;
+		} 
+    }
+    
+    public MapLocation nearestEnemyBotOrTreeOrNeutralTree(){
+    	MapLocation enemy = nearestEnemyBotOrTree();
+    	if (enemy == null){
+    		if(trees.getTreeCounts(Team.NEUTRAL) > 0)
+    			return trees.getClosestTree(Team.NEUTRAL).location;
+    	} 
+    	return null; // no enemy or neutral tree
+    }
+    
+    public MapLocation nearestEnemyBotOrTreeOrBulletTree(){
+    	MapLocation enemy = nearestEnemyBotOrTree();
+    	if (enemy == null){
+    		ArrayList<TreeInfo> bulletTrees = trees.getBulletTrees();
+    		if(bulletTrees.size() > 0)
+    			return bulletTrees.get(0).location;
+    	} 
+    	return null; // no enemy or bullet tree
+    }
+    	
     public boolean willCollideWithMe(BulletInfo bullet) {
         MapLocation myLocation = rc.getLocation();
 
@@ -195,6 +230,7 @@ public abstract class AbstractBot {
      */
 
     public void attack() throws GameActionException {
+
         MapLocation myLocation = rc.getLocation();
         //System.out.println(bots.getBotCounts(team.opponent()));
 
@@ -236,6 +272,18 @@ public abstract class AbstractBot {
             RobotInfo inDanger = bots.getWeakestbot(team);
             if (!inDanger.equals(null)) tryMove(rc.getLocation().directionTo(inDanger.location));
 
+
+        }
+    }
+    
+
+    public void donateBullets2() throws GameActionException {
+        float round = rc.getRoundNum();
+        float numBullets = rc.getTeamBullets();
+        float conversion = (7.5f) + ((round * 12.5f) / 3000f);
+
+        if (numBullets / conversion > 1000) {
+            rc.donate(numBullets);
         }
     }
 
@@ -250,4 +298,6 @@ public abstract class AbstractBot {
         Direction directionToEnemyArchon = mapLocation.directionTo(locationsOfEnemyArchons[0]);
         return directionToEnemyArchon;
     }
+    
+    
 }

@@ -11,9 +11,11 @@ public class Tank extends AbstractBot {
 	}
 
 	public void run() throws GameActionException {
+		trees.update();
 		bots.update();
 		dodge();
 		attack();
+		moveTowardsOrWander(this.nearestEnemyBotOrTree());
 	}
 
 }
