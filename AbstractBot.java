@@ -241,18 +241,18 @@ public abstract class AbstractBot {
             RobotInfo closestEnemy = bots.getClosestbot(team.opponent());
 
             Direction directionToMove = myLocation.directionTo(closestEnemy.location);
-            if (rc.canMove(directionToMove)) {
-                tryMove(directionToMove, 10, 2);
-            }
+
+            tryMove(directionToMove, 10, 2);
+
 
             if (single || triad || pentad) {
                 Direction directionToShoot = myLocation.directionTo(closestEnemy.location);
 
                 //setting appropriate ranges based on type of enemy to reduce wasted bullets and friendly fire
                 //tweak the hardcoded numbers as appropriate
-                float pentadRange = (float) 0.766 + rc.getType().bodyRadius;
-                float triadRange = (float) 1.074 + rc.getType().bodyRadius;
-                float singleRange = (float) 1.8 + rc.getType().bodyRadius;
+                float pentadRange = (float) 1 + rc.getType().bodyRadius;
+                float triadRange = (float) 1.574 + rc.getType().bodyRadius;
+                float singleRange = (float) 2.1 + rc.getType().bodyRadius;
                 if (closestEnemy.getType().equals(RobotType.ARCHON) || closestEnemy.getType().equals(RobotType.TANK)) {
                     pentadRange = pentadRange + (float) 1;
                     triadRange = triadRange + (float) 1.3;
@@ -270,7 +270,7 @@ public abstract class AbstractBot {
         }
         else {
             RobotInfo inDanger = bots.getWeakestbot(team);
-            if (!inDanger.equals(null)) tryMove(rc.getLocation().directionTo(inDanger.location));
+            if (inDanger!=null) tryMove(rc.getLocation().directionTo(inDanger.location));
 
 
         }

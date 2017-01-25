@@ -174,7 +174,7 @@ public class Gardener extends AbstractBot {
     public boolean moveLogic() throws GameActionException {
 	    //check if there are enemies, maybe just scouts, within a certain distance or on trees
         RobotInfo nearestEnemy = bots.getClosestbot(team.opponent());
-        boolean flee = (!nearestEnemy.equals(null));
+        boolean flee = (nearestEnemy!=null);
         //if so, run away, notify soldier
         if (flee) {
             Direction fleeTo = nearestEnemy.location.directionTo(rc.getLocation());
