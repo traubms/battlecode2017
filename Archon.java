@@ -13,7 +13,7 @@ public class Archon extends AbstractBot {
 	}
 
     public void run() {
-	    System.out.println("archon");
+	    trees.update();
     }
 	/**build Gardener in given direction d
 	 * @param d : direction in which to place thing

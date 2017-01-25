@@ -11,7 +11,7 @@ public class Gardener extends AbstractBot {
 		// TODO Auto-generated constructor stub
 	}
 	public void run() {
-		System.out.println("gardener");
+		trees.update();
 	}
 	/** Checks if tree can be planted and plants there */
     public void plantTree(Direction dir) throws GameActionException {
@@ -90,24 +90,11 @@ public class Gardener extends AbstractBot {
 			return true;
 		} else {return false;}
 	}
-	/** function for building trees, does not assume sites are in any order
-	 * @param plantSites, an array of map locations at which to build trees
-	 * @return newPlantSites, an array of map locations of which locations still need to be planted*/
 
-	public MapLocation[] buildTrees(MapLocation[] plantSites) {
-		//find nearest site
-		double minDist = 1000000000;
-		MapLocation nearest = plantSites[0];
-		for (MapLocation ps : plantSites) {
-			double distTo = rc.getLocation().distanceTo(ps);
-			if (distTo < minDist) {
-				minDist = distTo;
-				nearest = ps;
-			}
-		}
-		if (canPlantLoc(nearest)) {
-			// TODO
-		}
-		return null;
-	}
+	/**Moves to position to plant*/
+	public void moveToPlant(MapLocation plantSite) {
+        // TODO
+    }
+
+
 }
