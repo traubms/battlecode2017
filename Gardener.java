@@ -83,7 +83,7 @@ public class Gardener extends AbstractBot {
 	 *
 	 * @throws GameActionException
 	 */
-	static void buildGardener() throws GameActionException {
+	public void buildGardener() throws GameActionException {
 
 		// sense the archon
 		Team team = rc.getTeam();

@@ -33,7 +33,7 @@ public class Archon extends AbstractBot {
 	 * @param round The current round of the game
 	 * @throws GameActionException
 	 */
-	static void tryPlantGardener(int round) throws GameActionException {
+	public void tryPlantGardener(int round) throws GameActionException {
 		int degree = 0;
 		while (degree < 360) {
 			float radian = ((float) degree * (float) Math.PI) / 180;
