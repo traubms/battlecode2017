@@ -2,20 +2,42 @@ package battlecode2017;
 
 import battlecode.common.*;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 public class Gardener extends AbstractBot {
-
+	
+	MapLocation base;
+	Direction dirToBase;
+	List<MapLocation> treeTargets;
+	boolean makeTree;
+	
 	public Gardener(RobotController rc) {
 		super(rc);
-		// TODO Auto-generated constructor stub
+		bots.update();
+		for(RobotInfo bot : bots.getBots(team)){
+			if (bot.getType() == RobotType.ARCHON){
+				this.base = bot.location;
+				this.dirToBase = rc.getLocation().directionTo(base);
+				break;
+			}
+		}
+		this.treeTargets = calculateTreeTargets();
+		this.makeTree = false;
 	}
 
 	public void run() throws GameActionException {
 	    trees.update();
-	    dodge();
-	    waterAndMove();
+	    bots.update();
+	    if (makeTree){
+	    	plantTreeInFormation();
+	    	waterWeakest();
+	    } else {
+	    	waterAndMove();
+	    }
 	    followBuildCommands();
+	    
 	}
 
 	/** Checks if tree can be planted in a direction and plants there 
@@ -40,6 +62,45 @@ public class Gardener extends AbstractBot {
 		return false; // build not successful, so return false
     }
     
+    public boolean plantTreeAwayFromBase() throws GameActionException{
+	    Direction tryPlantDir = dirToBase;
+		for (int i = 0; i < 5; i++) {
+			if (i != 2){ // not in direction away from base either
+				tryPlantDir = tryPlantDir.rotateLeftDegrees((float) (360. / 6));
+				if (this.plantTree(tryPlantDir)){ // if build successful, break and return true
+					return true;
+				}
+			}
+		}
+		return false; // build not successful, so return false
+    }
+    
+    public boolean plantTreeInFormation() throws GameActionException{
+    	MapLocation nextLoc = this.treeTargets.get(0);
+    	System.out.println(nextLoc);
+    	if(plantTree(nextLoc)){
+    		treeTargets.remove(0);
+    		makeTree = false;
+    		return true;
+    	} else {
+    		return false;
+    	}
+    }
+    
+    public boolean wanderAlongAisle() throws GameActionException{
+    	Direction dir;
+    	if (Math.random() > 5)
+    		dir = dirToBase;
+    	else
+    		dir = dirToBase.opposite();
+    	
+    	if(!this.tryMove(dir)){
+    		return this.tryMove(dir.opposite());
+    	} else{
+    		return true;
+    	}
+    }
+    
     public void followBuildCommands() throws GameActionException{
     	Map<Codes, Integer> orders = radio.checkBuildOrders();
     	for(Codes code: orders.keySet()){
@@ -54,21 +115,16 @@ public class Gardener extends AbstractBot {
     
     public boolean build(Codes code) throws GameActionException{
     	if (code == Codes.TREE){
-    		return plantTree();
+    		this.makeTree = true;
+    		return this.plantTreeInFormation();
     	} else {
     		return build(code.getRobotType());
     	}
     }
     
     public boolean build(RobotType robotType) throws GameActionException{
-	    Direction tryBuildDir = BotUtils.randomDirection();
-		for (int i = 0; i < 8; i++) {
-			tryBuildDir = tryBuildDir.rotateLeftDegrees((float) (360. / 8));
-			if (build(tryBuildDir, robotType)){ // if build successful, break and return true
-				return true;
-			}
-		}
-		return false; // build not successful, so return false
+	    Direction tryBuildDir = this.dirToBase.opposite();
+	    return build(tryBuildDir, robotType);
     }
     
     /**build functions for various robot types*/
@@ -157,12 +213,20 @@ public class Gardener extends AbstractBot {
     }
 
 
-	/**a function for planting a tree at a particular map location*/
-	public void plantTree(MapLocation plantSite) throws GameActionException{
+	/**a function for planting a tree at a particular map location
+	 * Return True if plant successful.
+	 * 
+	 * */
+	public boolean plantTree(MapLocation plantSite) throws GameActionException{
 	    if (canPlantLoc(plantSite)) {
 	        rc.plantTree(rc.getLocation().directionTo(plantSite));
+	        return true;
         }
-     else { moveToPlant(plantSite);} //can implement return from moveToPlant to determine whether or not moving there is possible at all
+	    else { //can implement return from moveToPlant to determine whether or not moving there is possible at all
+	    	System.out.println("moving to plant...");
+	    	moveToPlant(plantSite);
+			return false;
+	    } 
     }
 
 	/**Determines whether or not can plant a tree at a given location */
@@ -175,15 +239,21 @@ public class Gardener extends AbstractBot {
 
 	public MapLocation[] possiblePositionsForPlanting(MapLocation myLoc, MapLocation plantSite) throws GameActionException{
 		MapLocation[] intPoints = BotUtils.findCircleIntersections(rc.getLocation(), plantSite, rc.getType().bodyRadius, (float) 1);
-        MapLocation nearPoint = plantSite.add(plantSite.directionTo(rc.getLocation()), (float) 1 + GameConstants.GENERAL_SPAWN_OFFSET + rc.getType().strideRadius);
-        MapLocation[] result = new MapLocation[1 + intPoints.length];
-        result[0] = nearPoint;
-        MapLocation iP;
-        for(int i = 0; i < intPoints.length; i++){
-        	iP = intPoints[i];
-        	result[i+1] = iP.add(iP.directionTo(rc.getLocation()), rc.getType().bodyRadius);
+		MapLocation nearPoint = plantSite.add(plantSite.directionTo(rc.getLocation()), (float) 1 + GameConstants.GENERAL_SPAWN_OFFSET + rc.getType().strideRadius);
+		MapLocation[] result;
+		if (intPoints == null){
+			result = new MapLocation[1];
+        } else {
+        	result = new MapLocation[1 + intPoints.length];
+	        MapLocation iP;
+	        for(int i = 0; i < intPoints.length; i++){
+	        	iP = intPoints[i];
+	        	result[i+1] = iP.add(iP.directionTo(rc.getLocation()), rc.getType().bodyRadius);
+	        }
+	        return result;
         }
-        return result;
+		result[0] = nearPoint;
+		return result;
         
 	}
 	
@@ -257,6 +327,25 @@ public class Gardener extends AbstractBot {
 				rc.plantTree(directionToPlant);
 			}
 		}
+	}
+	
+	public List<MapLocation> calculateTreeTargets(int N){
+		MapLocation ccw, cw, loc, myLoc = rc.getLocation();
+		cw = myLoc.add(dirToBase.rotateRightDegrees(90), 2+GameConstants.GENERAL_SPAWN_OFFSET);
+		ccw = myLoc.add(dirToBase.rotateRightDegrees(-90), 2+GameConstants.GENERAL_SPAWN_OFFSET);
+		List<MapLocation> result = new ArrayList<MapLocation>(N);
+		for(int i = 0; i < N; i++){
+			if (i % 2 == 0)
+				loc = ccw;
+			else
+				loc = cw;
+			result.add(loc.add(dirToBase,  -2 * (int) (i / 2)));
+		}
+		return result;
+	}
+	
+	public List<MapLocation> calculateTreeTargets(){
+		return calculateTreeTargets(8);
 	}
 
 

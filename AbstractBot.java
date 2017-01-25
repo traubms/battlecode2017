@@ -36,8 +36,6 @@ public abstract class AbstractBot {
 	
 	public abstract void run() throws GameActionException;
 	
-
-    
     /** Move in random direction*/
     public boolean wander() throws GameActionException {
         Direction dir = BotUtils.randomDirection();
@@ -129,9 +127,14 @@ public abstract class AbstractBot {
     	if (goal == null) {
 			wander();
 		} else if(!rc.getLocation().isWithinDistance(goal, tol)){
-			this.tryMove(rc.getLocation().directionTo(goal));
+			this.moveTo(goal);
 		}
     }
+    
+    public void moveTowardsOrWander(MapLocation goal) throws GameActionException{
+    	moveTowardsOrWander(goal, this.EPSILON);
+    }
+    
     
     public MapLocation nearestEnemyBotOrTree(){
     	if (bots.getBotCounts(team.opponent()) > 0){ // move to opponent
@@ -142,7 +145,26 @@ public abstract class AbstractBot {
 			return null;
 		} 
     }
-
+    
+    public MapLocation nearestEnemyBotOrTreeOrNeutralTree(){
+    	MapLocation enemy = nearestEnemyBotOrTree();
+    	if (enemy == null){
+    		if(trees.getTreeCounts(Team.NEUTRAL) > 0)
+    			return trees.getClosestTree(Team.NEUTRAL).location;
+    	} 
+    	return null; // no enemy or neutral tree
+    }
+    
+    public MapLocation nearestEnemyBotOrTreeOrBulletTree(){
+    	MapLocation enemy = nearestEnemyBotOrTree();
+    	if (enemy == null){
+    		ArrayList<TreeInfo> bulletTrees = trees.getBulletTrees();
+    		if(bulletTrees.size() > 0)
+    			return bulletTrees.get(0).location;
+    	} 
+    	return null; // no enemy or bullet tree
+    }
+    	
     public boolean willCollideWithMe(BulletInfo bullet) {
         MapLocation myLocation = rc.getLocation();
 

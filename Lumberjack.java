@@ -20,7 +20,7 @@ public class Lumberjack extends AbstractBot {
 		bots.update();
 		dodge();
 		strikeOrChop();
-		moveTowardsEnemiesOrTrees();
+		moveTowardsOrWander(nearestEnemyBotOrTreeOrNeutralTree());
     }
 	
 	public void strike() throws GameActionException{

@@ -18,7 +18,7 @@ public class Soldier extends AbstractBot {
 		trees.update();
 		bots.update();
 		dodge();
-		moveTowardsEnemiesOrTrees();
 		attack();
+		moveTowardsOrWander(this.nearestEnemyBotOrTree());
 	}
 }

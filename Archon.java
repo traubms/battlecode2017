@@ -70,7 +70,7 @@ public class Archon extends AbstractBot {
 			if (rc.canHireGardener(direction) && (round == 1 || round % 60 == 0)) {
 				rc.hireGardener(direction);
 			}
-			degree += 60;
+			degree += 120;
 		}
 	}
 }
