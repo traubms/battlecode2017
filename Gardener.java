@@ -11,6 +11,7 @@ public class Gardener extends AbstractBot {
 		// TODO Auto-generated constructor stub
 	}
 	public void run() throws GameActionException {
+	    trees.update();
 		plantTreesAndBuildSoldiers();
 	}
 	/** Checks if tree can be planted and plants there */
@@ -38,18 +39,58 @@ public class Gardener extends AbstractBot {
 			return false;
 		}
 	}
-	
+	/**a function for planting a tree at a particular map location*/
+	public void plantTree(MapLocation plantSite) throws GameActionException{
+	    if (canPlantLoc(plantSite)) {
+	        rc.plantTree(rc.getLocation().directionTo(plantSite));
+        }
+     else { moveToPlant(plantSite);} //can implement return from moveToPlant to determine whether or not moving there is possible at all
+    }
+
 	/**Determines whether or not can plant a tree at a given location */
-	public boolean canPlantLoc(MapLocation plantSite) {
-		if ((rc.getLocation().distanceTo(plantSite) - (1 + GameConstants.GENERAL_SPAWN_OFFSET)) <= EPSILON
+	public boolean canPlantLoc(MapLocation plantSite) throws GameActionException {
+		if ((rc.getLocation().distanceTo(plantSite) - (1 + GameConstants.GENERAL_SPAWN_OFFSET+rc.getType().bodyRadius)) <= EPSILON
 				&& rc.canPlantTree(rc.getLocation().directionTo(plantSite)))  {
 			return true;
 		} else {return false;}
 	}
 
-	/**Moves to position to plant*/
-	public void moveToPlant(MapLocation plantSite) {
-        // TODO
+	/**Moves to position to plant
+     * @param plantSite : location that the tree should be (the center of the tree)
+     * @return true if we made progress or are there, else return false
+     * @throws GameActionException
+     * */
+	public boolean moveToPlant(MapLocation plantSite) throws GameActionException{
+        if (((rc.getLocation().distanceTo(plantSite) - (1 + rc.getType().bodyRadius+GameConstants.GENERAL_SPAWN_OFFSET)) > EPSILON)) {
+            if (rc.getLocation().distanceTo(plantSite) > (rc.getType().bodyRadius+(float)1+rc.getType().strideRadius+GameConstants.GENERAL_SPAWN_OFFSET)) {
+                tryMove(rc.getLocation().directionTo(plantSite));
+            } else {
+                MapLocation[] intPoints = BotUtils.findCircleIntersections(rc.getLocation(), plantSite, rc.getType().bodyRadius, (float) 1);
+                MapLocation nearPoint = plantSite.add(plantSite.directionTo(rc.getLocation()), (float) 1 + GameConstants.GENERAL_SPAWN_OFFSET + rc.getType().strideRadius);
+                boolean hasMoved = false;
+                if (rc.canMove(nearPoint)) {
+                    rc.move(nearPoint);
+                    hasMoved = true;
+                } else {
+
+                    for (MapLocation iP : intPoints) {
+                        MapLocation To = iP.add(iP.directionTo(rc.getLocation()), rc.getType().bodyRadius);
+                        if (rc.canMove(To)) {
+                            rc.move(To);
+                            hasMoved = true;
+                            break;
+                        }
+                    }
+                }
+                if (!hasMoved) {
+                    tryMove(rc.getLocation().directionTo(plantSite), 30, 3);
+                }
+            }
+            if (rc.canWater()) {
+                return false;
+            } else { return true; }
+        }
+        return true;
     }
 
 	/**

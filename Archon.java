@@ -13,25 +13,14 @@ public class Archon extends AbstractBot {
 	}
 
     public void run() throws GameActionException {
+	    trees.update();
     	tryPlantGardener();
     }
-    
-	/**build Gardener in given direction d
-	 * @param d : direction in which to place thing
-	 *          @return boolean as to whether or not it built one
-	 *          @throws battlecode.common.GameActionException
-	 */
-	public boolean buildGardener(Direction d) throws GameActionException{
-		if (rc.canBuildRobot(RobotType.GARDENER, d)){
-			rc.buildRobot(RobotType.GARDENER, d);
-			return true;
-		} else {return false;}
-	}
+
 
 	/** Trys to plant a gardener around an Archon by checking different
 	 * possible planting locations around it. Only plants every 50 turns
 	 *
-	 * @param round The current round of the game
 	 * @throws GameActionException
 	 */
 	public void tryPlantGardener() throws GameActionException {
