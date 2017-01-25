@@ -42,6 +42,14 @@ public abstract class AbstractBot {
         return tryMove(dir);
     }
 
+    /** most fundamental movement funciton we've made*/
+    public boolean move(Direction dir) throws GameActionException {
+        if (!rc.hasMoved() && rc.canMove(dir)) {
+            rc.move(dir);
+            return true;
+        } else return false;
+    }
+
     public boolean tryMove(Direction dir) throws GameActionException {
         return tryMove(dir,20,7);
     }
@@ -55,7 +63,7 @@ public abstract class AbstractBot {
         if (distTo > rc.getType().strideRadius) {
             return tryMove(dirTo);
         } else {
-            if (rc.canMove(dest)) {
+            if (!rc.hasMoved() && rc.canMove(dest)) {
                 rc.move(dest);
                 return true;
             } else {
@@ -83,26 +91,16 @@ public abstract class AbstractBot {
     public boolean tryMove(Direction dir, float degreeOffset, int checksPerSide) throws GameActionException {
 
         // First, try intended direction
-        if (!rc.hasMoved() && rc.canMove(dir)) {
-            rc.move(dir);
-            return true;
-        }
-
+        move(dir);
         // Now try a bunch of similar angles
         //boolean moved = rc.hasMoved();
         int currentCheck = 1;
 
         while(currentCheck<=checksPerSide) {
-            // Try the offset of the left side
-            if(!rc.hasMoved() && rc.canMove(dir.rotateLeftDegrees(degreeOffset*currentCheck))) {
-                rc.move(dir.rotateLeftDegrees(degreeOffset*currentCheck));
-                return true;
-            }
-            // Try the offset on the right side
-            if(! rc.hasMoved() && rc.canMove(dir.rotateRightDegrees(degreeOffset*currentCheck))) {
-                rc.move(dir.rotateRightDegrees(degreeOffset*currentCheck));
-                return true;
-            }
+            // Try the offset of the right side
+            move(dir.rotateRightDegrees(degreeOffset*currentCheck));
+            // Try the offset on the left side
+            move(dir.rotateLeftDegrees(degreeOffset*currentCheck));
             // No move performed, try slightly further
             currentCheck++;
         }
@@ -149,6 +147,22 @@ public abstract class AbstractBot {
 		} else {
 			return null;
 		} 
+    }
+
+    public TreeInfo nearestEnemyTreeOrNeutralTree() {
+        TreeInfo nearestTree = null;
+        if (trees.getTreeCounts(Team.NEUTRAL) > 0) {
+            nearestTree = trees.getClosestTree(Team.NEUTRAL);
+        }
+        if (trees.getTreeCounts(team.opponent()) > 0) {
+            TreeInfo nearestBTree = trees.getClosestTree(team.opponent());
+            if (nearestTree == null || rc.getLocation().distanceTo(nearestBTree.getLocation()) < rc.getLocation().distanceTo(nearestTree.getLocation())) {
+                nearestTree = nearestBTree;
+            }
+        }
+        if (nearestTree!=null) return nearestTree;
+        else return null;
+
     }
     
     public MapLocation nearestEnemyBotOrTreeOrNeutralTree(){
