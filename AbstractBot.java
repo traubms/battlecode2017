@@ -40,7 +40,7 @@ public abstract class AbstractBot {
         Direction dir = randomDirection();
         return tryMove(dir);
     }
-    
+
 
 
     /**find intersection between two circles
@@ -124,7 +124,6 @@ public abstract class AbstractBot {
     }
 
 
-    
 
 
 
