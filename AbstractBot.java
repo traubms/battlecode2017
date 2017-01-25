@@ -233,14 +233,29 @@ public abstract class AbstractBot {
 
         MapLocation myLocation = rc.getLocation();
         //System.out.println(bots.getBotCounts(team.opponent()));
+        RobotInfo closestEnemy = bots.getClosestbot(team.opponent());
+        float directionDifference = (float) 500;
 
-        if (bots.getBotCounts(team.opponent()) > 0) {
+        if (closestEnemy!=null) {
             boolean single = rc.canFireSingleShot();
             boolean triad = rc.canFireTriadShot();
             boolean pentad = rc.canFirePentadShot();
-            RobotInfo closestEnemy = bots.getClosestbot(team.opponent());
+
 
             Direction directionToMove = myLocation.directionTo(closestEnemy.location);
+            TreeInfo nearestBadTree = trees.getClosestTree(team.opponent());
+            TreeInfo nearestNTree = trees.getClosestTree(Team.NEUTRAL);
+            if (nearestNTree != null) {
+                if (nearestBadTree == null) {
+                    nearestBadTree = nearestNTree;
+                } else if (rc.getLocation().distanceTo(nearestBadTree.location) > rc.getLocation().distanceTo(nearestNTree.location)){
+                    nearestBadTree = nearestNTree;
+                }
+            }
+
+            if (nearestBadTree != null) {
+                directionDifference = directionToMove.degreesBetween(myLocation.directionTo(nearestBadTree.location));
+            }
 
             tryMove(directionToMove, 10, 2);
 
@@ -262,8 +277,16 @@ public abstract class AbstractBot {
 
                 if (rc.canFirePentadShot() && distToEnemy < pentadRange)  //TODO take into account that friendlies might be in the way?
                     rc.firePentadShot(directionToShoot);
+                else if (rc.canFirePentadShot() && nearestBadTree!= null && myLocation.distanceTo(nearestBadTree.location) < (float) 1.5
+                        && directionDifference < (float) 50) {
+                    rc.firePentadShot(directionToShoot);
+                }
                 else if (rc.canFireTriadShot() && distToEnemy < triadRange)
                     rc.fireTriadShot(directionToShoot);
+                else if (rc.canFireTriadShot() && nearestBadTree!= null && myLocation.distanceTo(nearestBadTree.location) < (float) 1.5
+                        && directionDifference < (float) 50) {
+                    rc.firePentadShot(directionToShoot);
+                }
                 else if (distToEnemy < singleRange)
                     rc.fireSingleShot(directionToShoot);
             }
