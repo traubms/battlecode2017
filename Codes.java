@@ -7,9 +7,10 @@ public enum Codes {
 	TREE(2),
 	LUMBERJACK(3, RobotType.LUMBERJACK),
 	SCOUT(5, RobotType.SCOUT),
-	SOLDIER(7, RobotType.SOLDIER),
+	SOLIDER(7, RobotType.SOLDIER),
 	TANK(11, RobotType.TANK),
-    GARDENER(13, RobotType.GARDENER);
+    GARDENER(13, RobotType.GARDENER); 
+
 	
 	private int value;
 	private RobotType robotType;

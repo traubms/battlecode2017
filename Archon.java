@@ -100,7 +100,7 @@ public class Archon extends AbstractBot {
         if(getTypeCount(RobotType.GARDENER, this.team) >= gardeners)
             gardeners = 0; 
 
-        orders.put(Codes.SOLDIER, soldiers);
+        orders.put(Codes.SOLIDER, soldiers);
         orders.put(Codes.TANK, tanks);
         orders.put(Codes.LUMBERJACK, lumbers);
         orders.put(Codes.SCOUT, scouts);
