@@ -34,7 +34,7 @@ public class Archon extends AbstractBot {
 
 
    	public void orderScoutMode() throws GameActionException { //broadcasts to scout units to dictate their behavior mode depending available bullet trees etc.
-		
+
 		ArrayList<TreeInfo> bulletTrees = trees.getBulletTrees();
 		if (bulletTrees.size() > 0) { //neutral bullet trees still out there
 			radio.broadcast(Channels.SCOUT_MODE, Codes.SCOUTMODE_HARVEST);

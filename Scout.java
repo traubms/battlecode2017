@@ -9,6 +9,7 @@ import battlecode.common.*;
 
 import javax.xml.stream.Location;
 
+
 public class Scout extends AbstractBot {
 
 	public Scout(RobotController rc) {
@@ -17,17 +18,6 @@ public class Scout extends AbstractBot {
 	}
 	
 	public void run() throws GameActionException {
-		/*
-		dodge();
-		shake();
-		MapLocation goal = nearestEnemyBotOrTreeOrBulletTree();
-		if (goal == null)
-			wander();
-		else
-			moveTowardsOrWander(goal);
-		attack();
-		*/
-
 
 		//switch between different scout behaviors (channel 5 is the SCOUT_MODE channel used to tell the Scout which behavior to enact)
 		switch(radio.listen(Channels.SCOUT_MODE)) {
@@ -193,5 +183,43 @@ public class Scout extends AbstractBot {
 	}
 
 	//***************************************************************************//
+
+    /** Gets scouts to hide on enemy trees if they see gardeners and enemy trees, doesn't include attacking
+     * @return whether or not the scout moved (returns false if couldn't sense gardener and enemy tree as well)
+     * @throws GameActionException
+     */
+
+    public boolean hideOnTree() throws GameActionException {
+        //Find closest enemy gardener
+	    List<RobotInfo> EBots = bots.getBots(team.opponent());
+	    RobotInfo closestGardener = null;
+	    for (RobotInfo ri : EBots) {
+	        if (ri.getType().equals(RobotType.GARDENER)) {
+	            closestGardener = ri;
+	            break;
+            }
+        }
+        //If found enemy gardener, find enemy tree closest to said gardener
+        if (closestGardener!=null) {
+	        List<TreeInfo> nearTrees = trees.getTrees(team.opponent());
+	        TreeInfo closest2gardener = null;
+	        for (TreeInfo ti : nearTrees) {
+	            //long if statement is "if we haven't found a tree yet or this tree is closer to the gardener than the previous closest"
+	            if (closest2gardener == null
+                        || closestGardener.location.distanceTo(ti.location)
+                        < closestGardener.location.distanceTo(closest2gardener.location)) {
+	                closest2gardener = ti;
+                }
+            }
+            //If found appropriate gardener and tree, make a location slightly offset from the center of the tree
+            //in the direction of the gardener and try to move there.
+            if (closest2gardener != null) {
+	            MapLocation slightlyOff =
+                        closest2gardener.location.add(closest2gardener.location.directionTo(closestGardener.location), (float) 0.02);
+	            return moveTo(slightlyOff);
+            }
+        }
+        return false;
+    }
 
 }
