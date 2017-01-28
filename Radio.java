@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import battlecode.common.GameActionException;
+import battlecode.common.MapLocation;
 import battlecode.common.RobotController;
 
 public class Radio {
@@ -89,6 +90,31 @@ public class Radio {
 	public boolean forwardMarch() throws GameActionException{
 		return this.listen(Channels.FORWARD_MARCH) == 1;
 	}
+	
+	public void setSwarmLocation(MapLocation loc) throws GameActionException{
+		this.broadcast(Channels.SWARM_X, loc.x);
+		this.broadcast(Channels.SWARM_Y, loc.x);
+	}
+
+	public MapLocation swarmLocation() throws GameActionException {
+		return new MapLocation(listen(Channels.SWARM_X), this.listen(Channels.SWARM_Y));
+	}
+	
+	public void reachedSwarmLocation(MapLocation loc) throws GameActionException{
+		this.broadcast(Channels.REACHED_SWARM_X, loc.x);
+		this.broadcast(Channels.REACHED_SWARM_Y, loc.x);
+	}
+
+	public MapLocation checkReachSwarmLocation() throws GameActionException {
+		MapLocation loc = new MapLocation(listen(Channels.REACHED_SWARM_X), this.listen(Channels.REACHED_SWARM_Y));
+		if (loc.x == 0 && loc.y == 0){
+			return null;
+		} else {
+			reachedSwarmLocation(new MapLocation(0, 0));
+			return loc;
+		}
+	}
+	
 	
 
 }

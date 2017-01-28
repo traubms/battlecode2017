@@ -15,11 +15,11 @@ public class Lumberjack extends AbstractBot {
 		bots.update();
 		shake();
 		dodge();
-		if (radio.forwardMarch())
-			potentialMove(enemyArchLoc);
-		else {
-			chaseAndStrikeEnemies();
-			strikeOrChop();
+		chaseAndStrikeEnemies();
+		strikeOrChop();
+		if (radio.forwardMarch()){
+			followMarchingOrders();
+		} else {
 			moveTowardsOrWander(nearestEnemyBotOrTreeOrNeutralTree());
 		}
     }

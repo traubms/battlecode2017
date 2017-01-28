@@ -3,6 +3,7 @@ package battlecode2017;
 import java.util.ArrayList;
 import java.util.List;
 
+import battlecode.common.BodyInfo;
 import battlecode.common.BulletInfo;
 import battlecode.common.Clock;
 import battlecode.common.Direction;
@@ -25,7 +26,6 @@ public abstract class AbstractBot {
 	protected TreeReport trees;
 	protected BotReport bots;
 	protected Radio radio;
-	protected MapLocation enemyArchLoc;
 	
 	public AbstractBot(RobotController rc){
 		this.rc = rc;
@@ -33,7 +33,6 @@ public abstract class AbstractBot {
 		this.trees = new TreeReport(rc);
 		this.bots = new BotReport(rc);
 		this.radio = new Radio(rc);
-		this.enemyArchLoc = rc.getInitialArchonLocations(team.opponent())[0];
 	}
 	
 	public abstract void run() throws GameActionException;
@@ -53,6 +52,25 @@ public abstract class AbstractBot {
 
     public boolean tryMove(Direction dir) throws GameActionException {
         return tryMove(dir,20,7);
+    }
+    
+    public boolean followMarchingOrders() throws GameActionException{
+    	MapLocation loc = radio.swarmLocation();
+    	if (rc.getLocation().distanceTo(loc) < 5)
+    		radio.reachedSwarmLocation(loc);
+    	if (!potentialMove(loc)) {
+    		attackNeutralTrees();
+    		return false;
+    	} else
+    		return true;
+    }
+    
+    public boolean attackNeutralTrees() throws GameActionException{
+    	List<TreeInfo> neutralTrees = trees.getTrees(Team.NEUTRAL);
+		if (neutralTrees.size() > 0) {
+			return fireShot(neutralTrees.get(0)) != null;
+		} else 
+			return false;
     }
     
 
@@ -244,74 +262,101 @@ public abstract class AbstractBot {
      * @throws GameActionException
      */
 
-    public void attack() throws GameActionException {
+    public boolean attack() throws GameActionException {
 
-        MapLocation myLocation = rc.getLocation();
-        //System.out.println(bots.getBotCounts(team.opponent()));
+    	// choose target
         RobotInfo closestEnemy = bots.getClosestbot(team.opponent());
-        float directionDifference = (float) 500;
-
+        TreeInfo closestEnemyTree = trees.getClosestTree(team.opponent());
+        BodyInfo target;
         if (closestEnemy!=null) {
-            boolean single = rc.canFireSingleShot();
-            boolean triad = rc.canFireTriadShot();
-            boolean pentad = rc.canFirePentadShot();
+        	target = closestEnemy;
+        } else if (closestEnemyTree != null) {
+        	target = closestEnemyTree;
+        } else {
+        	target = null;
+        }
+        
+        //shoot
+        Direction shootDir = null;
+        if (target != null)
+        	shootDir = fireShot(target);
 
+        //means no shot taken, defend, else move not directly in path of bullets
+        if(shootDir == null) { 
+        	RobotInfo inDanger = bots.getWeakestbot(team);
+            if (inDanger!=null) 
+            	tryMove(rc.getLocation().directionTo(inDanger.location));
+            return false;
+        } else {
+        	Direction directionToTarget = rc.getLocation().directionTo(target.getLocation());
+            if (!tryMove(directionToTarget.rotateLeftDegrees(40), 10, 2))
+            	tryMove(directionToTarget.rotateRightDegrees(40), 10, 2);
+            return true;
+        }
+    }
+    
+    public Direction fireShot(BodyInfo target) throws GameActionException{
+    	MapLocation myLocation = rc.getLocation(), loc = target.getLocation();
+    	Direction directionToShoot = myLocation.directionTo(loc);
+    	float distToEnemy = rc.getLocation().distanceTo(loc);
+    	
 
-            Direction directionToMove = myLocation.directionTo(closestEnemy.location);
-            TreeInfo nearestBadTree = trees.getClosestTree(team.opponent());
-            TreeInfo nearestNTree = trees.getClosestTree(Team.NEUTRAL);
-            if (nearestNTree != null) {
-                if (nearestBadTree == null) {
-                    nearestBadTree = nearestNTree;
-                } else if (rc.getLocation().distanceTo(nearestBadTree.location) > rc.getLocation().distanceTo(nearestNTree.location)){
-                    nearestBadTree = nearestNTree;
-                }
-            }
-
-            if (nearestBadTree != null) {
-                directionDifference = directionToMove.degreesBetween(myLocation.directionTo(nearestBadTree.location));
-            }
-
-            tryMove(directionToMove, 10, 2);
-
-
-            if (single || triad || pentad) {
-                Direction directionToShoot = myLocation.directionTo(closestEnemy.location);
-
-                //setting appropriate ranges based on type of enemy to reduce wasted bullets and friendly fire
-                //tweak the hardcoded numbers as appropriate
-                float pentadRange = (float) 1 + rc.getType().bodyRadius;
-                float triadRange = (float) 1.574 + rc.getType().bodyRadius;
-                float singleRange = (float) 2.1 + rc.getType().bodyRadius;
-                if (closestEnemy.getType().equals(RobotType.ARCHON) || closestEnemy.getType().equals(RobotType.TANK)) {
-                    pentadRange = pentadRange + (float) 1;
-                    triadRange = triadRange + (float) 1.3;
-                    singleRange = singleRange + (float) 2.5;
-                }
-                float distToEnemy = rc.getLocation().distanceTo(closestEnemy.location);
-
-                if (rc.canFirePentadShot() && distToEnemy < pentadRange)
-                    rc.firePentadShot(directionToShoot);
-                else if (rc.canFirePentadShot() && nearestBadTree!= null && myLocation.distanceTo(nearestBadTree.location) < (float) 1.5
-                        && directionDifference < (float) 50) {
-                    rc.firePentadShot(directionToShoot);
-                }
-                else if (rc.canFireTriadShot() && distToEnemy < triadRange)
-                    rc.fireTriadShot(directionToShoot);
-                else if (rc.canFireTriadShot() && nearestBadTree!= null && myLocation.distanceTo(nearestBadTree.location) < (float) 1.5
-                        && directionDifference < (float) 50) {
-                    rc.firePentadShot(directionToShoot);
-                }
-                else if (distToEnemy < singleRange)
-                    rc.fireSingleShot(directionToShoot);
+        //setting appropriate ranges based on type of enemy to reduce wasted bullets and friendly fire
+        //tweak the hardcoded numbers as appropriate
+        float pentadRange = (float) 1 + rc.getType().bodyRadius;
+        float triadRange = (float) 1.574 + rc.getType().bodyRadius;
+        float singleRange = (float) 2.1 + rc.getType().bodyRadius;
+        if (target.isRobot()){
+	        if (((RobotInfo)target).getType().equals(RobotType.ARCHON) || ((RobotInfo)target).getType().equals(RobotType.TANK)) {
+	            pentadRange = pentadRange + (float) 1;
+	            triadRange = triadRange + (float) 1.3;
+	            singleRange = singleRange + (float) 2.5;
+	        }
+        }
+        
+        TreeInfo nearestBadTree = trees.getClosestTree(team.opponent());
+        TreeInfo nearestNTree = trees.getClosestTree(Team.NEUTRAL);
+        TreeInfo nearestGoodTree = trees.getClosestTree(team);
+        
+        // consider neutral tree to be enemy tree
+        if (nearestNTree != null) { 
+            if (nearestBadTree == null) {
+                nearestBadTree = nearestNTree;
+            } else if (rc.getLocation().distanceTo(nearestBadTree.location) > rc.getLocation().distanceTo(nearestNTree.location)){
+                nearestBadTree = nearestNTree;
             }
         }
-        else {
-            RobotInfo inDanger = bots.getWeakestbot(team);
-            if (inDanger!=null) tryMove(rc.getLocation().directionTo(inDanger.location));
-
-
+        
+        float directionDifference = (float) 500;
+        if (nearestBadTree != null) {
+            directionDifference = directionToShoot.degreesBetween(myLocation.directionTo(nearestBadTree.location));
         }
+        
+        // decide if surrounding trees affect logic
+        boolean dontWorryAboutTrees;
+        if (target.isTree())
+        	dontWorryAboutTrees = true;
+        else if (nearestBadTree== null)
+        	dontWorryAboutTrees = true;
+        else 
+        	dontWorryAboutTrees = myLocation.distanceTo(nearestBadTree.location) < (float) 1.5 && directionDifference < (float) 50;
+        
+        boolean single = rc.canFireSingleShot();
+        boolean triad = rc.canFireTriadShot();
+        boolean pentad = rc.canFirePentadShot();
+        if (single || triad || pentad){
+	        if (pentad && (distToEnemy < pentadRange || dontWorryAboutTrees)) {// pentad close enough
+	            rc.firePentadShot(directionToShoot);
+	        } else if (triad && (distToEnemy < triadRange|| dontWorryAboutTrees)) {
+	            rc.fireTriadShot(directionToShoot);
+	        } else if (distToEnemy < singleRange) {
+	            rc.fireSingleShot(directionToShoot);
+	        } else {
+	        	return null;
+	        }
+        	return directionToShoot;
+        } else
+        	return null;
     }
     
     public float[] initializeGradient(){

@@ -11,11 +11,17 @@ public class Archon extends AbstractBot {
     
 	private int scoutsMade;
 	private int gardenersMade;
+	private List<MapLocation> enemyArchLocs;
 	
 	public Archon(RobotController rc) {
 		super(rc);
 		this.scoutsMade = 0;
 		this.gardenersMade = 0;
+		
+		this.enemyArchLocs = new ArrayList<MapLocation>();
+		MapLocation[] enemyArch = rc.getInitialArchonLocations(team.opponent());
+		for (MapLocation loc: enemyArch)
+			enemyArchLocs.add(loc);
 	}
 
 	/*
@@ -32,9 +38,22 @@ public class Archon extends AbstractBot {
     	orderScoutMode(); //tell all scout units which behavior protocol to run each turn
 		makeBuildOrders(); //build robots
     	donateBullets2(); //buy victory points
+    	dodge();
     	wander();
-    	if (team == Team.A && rc.getRoundNum() > 1500)
-    		radio.setForwardMarch();
+    	decideSwarmLocation();
+    }
+    
+    public void decideSwarmLocation() throws GameActionException {
+    	if (rc.getRoundNum() > 1200) {
+    		MapLocation reached = radio.checkReachSwarmLocation();
+    		if (this.enemyArchLocs.contains(reached))
+    			enemyArchLocs.remove(reached);
+    		if (enemyArchLocs.size() > 0)
+    			radio.setSwarmLocation(enemyArchLocs.get(0));
+    		else {
+    			radio.setSwarmLocation(rc.getLocation());
+    		}
+    	}
     }
 
 
