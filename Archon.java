@@ -33,6 +33,8 @@ public class Archon extends AbstractBot {
 		makeBuildOrders(); //build robots
     	donateBullets2(); //buy victory points
     	wander();
+    	if (team == Team.A && rc.getRoundNum() > 1500)
+    		radio.setForwardMarch();
     }
 
 
@@ -87,27 +89,29 @@ public class Archon extends AbstractBot {
 		tree = 3;
 		if(trees.getTreeCounts(this.team) > 2){
 			//Scout
-	    	scouts = (int) (Math.random() + .1);
+	    	scouts = (int) (Math.random() + .03);
 	    	
 			//LumberJacks
 			lumbers = (int) trees.getTreeCounts(Team.NEUTRAL) / 2;
     	
 			soldiers = (int) (Math.random() + .3) + bots.getBotCounts(team.opponent());
-			
-			if (soldiers > 0)
-				lumbers = 0;
     	
 			if (rc.getTeamBullets() > 300)
 				tanks = 1;
 			
 		}
 		gardeners = 0;
-    	if(getTypeCount(RobotType.GARDENER, this.team) < 2 || Math.random() < .1)
-            gardeners = 1; 
-    	if(getTypeCount(RobotType.GARDENER, this.team) >= 4 || gardenersMade >= 5)
-    		gardeners = 0;
-    	if(Math.random() < .05)
-    		gardeners = 1;
+		int gCount = getTypeCount(RobotType.GARDENER, this.team) ;
+		if(gardenersMade > 0 && rc.getTeamBullets() > 150){
+	    	if(gCount < 2 || Math.random() < .1)
+	            gardeners = 1; 
+	    	if(getTypeCount(RobotType.GARDENER, this.team) >= 4 || gardenersMade >= 5)
+	    		gardeners = 0;
+	    	if(Math.random() < .05)
+	    		gardeners = 1;
+		} else if(gardenersMade  == 0){
+			gardeners = 1;
+		}
 
     	Map<Codes, Integer> orders = new HashMap<Codes, Integer>();
         orders.put(Codes.SOLIDER, soldiers);

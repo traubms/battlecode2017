@@ -82,5 +82,13 @@ public class Radio {
 			broadcast(Channels.BUILD, message * bot.getValue());
 	}
 	
+	public void setForwardMarch() throws GameActionException{
+		this.broadcast(Channels.FORWARD_MARCH, 1);
+	}
+	
+	public boolean forwardMarch() throws GameActionException{
+		return this.listen(Channels.FORWARD_MARCH) == 1;
+	}
+	
 
 }

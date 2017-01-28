@@ -17,8 +17,12 @@ public class Soldier extends AbstractBot {
 	public void run() throws GameActionException {
 		trees.update();
 		bots.update();
+		shake();
 		dodge();
 		attack();
-		moveTowardsOrWander(this.nearestEnemyBotOrTree());
+		if (radio.forwardMarch())
+			potentialMove(enemyArchLoc);
+		else
+			moveTowardsOrWander(this.nearestEnemyBotOrTree());
 	}
 }

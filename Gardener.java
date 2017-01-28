@@ -36,48 +36,46 @@ public class Gardener extends AbstractBot {
 	public void run() throws GameActionException {
 	    bots.update();
 	    trees.update();
-//	    checkOnTrees();
 	    waterWeakest();
-//	    TreeInfo weakestTree = trees.getWeakestTreeWithinInteract(team);
-//	    if(weakestTree != null && weakestTree.health < GameConstants.BULLET_TREE_MAX_HEALTH / 2){
-//	    	this.moveTo(weakestTree.location);
-//	    	this.waterWeakest();
-//	    } else {
-//	    	
-//	    }
+
 	    if(!foundHome){
 		    int count = 0;
-		    float minDist = 10000, dist, strength;
+		    float minDist = 10000, minArchDist=1000, dist, strength;
 		    float[] gradient = new float[2];
 		    MapLocation myLoc = rc.getLocation();
 		    for(RobotInfo bot: bots.getBots(team)){
 		    	if (bot.type == RobotType.GARDENER || bot.type == RobotType.ARCHON){
 		    		count++;
 		    		dist = myLoc.distanceTo(bot.location);
-		    		if (dist < minDist)
+		    		if (bot.type == RobotType.GARDENER && dist < minDist)
 		    			minDist = dist;
+		    		if (bot.type == RobotType.ARCHON && dist < minDist)
+		    			minArchDist = dist;
 		    	}
 	    		if (bot.type == RobotType.ARCHON)
-	    			strength = 2;
-	    		else
+	    			strength = .1f;
+	    		else if (bot.type == RobotType.GARDENER)
 	    			strength = 1;
+	    		else
+	    			strength = .00f;
 	    		gradient = updateGradient(gradient, myLoc, bot.location, strength);	
 		    }
-		    float stopDist = 8f;
-		    if (count == 0 || minDist > stopDist){
+		    float stopDist = 8.5f;
+		    if (count == 0 || (minDist > stopDist && minArchDist > stopDist * 3 / 4)){
 		    	List<Direction> bd = getBuildDirections();
 		    	System.out.println(bd.size());
 		    	if (bd.size() < 3 && bd.size() > 0){
 		    		this.build(bd.get(0), RobotType.LUMBERJACK);
 		    		System.out.println("lumber...");
 		    	}else 
-		    		foundHome = true;
+		    		while(!build(RobotType.SOLDIER)){
+		    			foundHome = true;
+		    		}
 		    } 
 		    if (!foundHome){
-		    	if (count == 0)
-		    		gradient = updateGradient(gradient, myLoc, base, .1f);
-		    	for(TreeInfo tree: trees.getTrees(team))
-		    		gradient = updateGradient(gradient, myLoc, tree.location, 1);
+		    	gradient = updateGradient(gradient, myLoc, base, 1f);
+//		    	for(TreeInfo tree: trees.getTrees(team))
+//		    		gradient = updateGradient(gradient, myLoc, tree.location, .01f);
 		    	followGradient(gradient);
 		    }
 	    }
@@ -87,28 +85,6 @@ public class Gardener extends AbstractBot {
 	    		plantTree();
 	    }
 	    
-	}
-	
-	public float[] updateGradient(float[] gradient, MapLocation myLoc, MapLocation loc, float strength){
-		float dist = myLoc.distanceTo(loc);
-		gradient[0] += strength * (myLoc.x - loc.x) / (dist*dist*dist);
-		gradient[1] += strength * (myLoc.y - loc.y) / (dist*dist*dist);
-		return gradient;
-	}
-	
-	public boolean followGradient(float[] gradient) throws GameActionException{
-		MapLocation myLoc=rc.getLocation(), spot;
-		Direction moveDir;
-		for(int i = 0; i < 3; i++){
-		moveDir = new Direction((float) Math.atan2(gradient[1], gradient[0]));
-			if(tryMove(moveDir))
-				return true;
-			else if(i < 2){
-				spot = myLoc.add(moveDir, .3f);
-				gradient = updateGradient(gradient, myLoc, spot, 1);
-			}
-		}
-		return false;
 	}
 
 	/** Checks if tree can be planted in a direction and plants there 

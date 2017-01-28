@@ -13,10 +13,15 @@ public class Lumberjack extends AbstractBot {
 	public void run() throws GameActionException {
 		trees.update();
 		bots.update();
+		shake();
 		dodge();
-		chaseAndStrikeEnemies();
-		strikeOrChop();
-		moveTowardsOrWander(nearestEnemyBotOrTreeOrNeutralTree());
+		if (radio.forwardMarch())
+			potentialMove(enemyArchLoc);
+		else {
+			chaseAndStrikeEnemies();
+			strikeOrChop();
+			moveTowardsOrWander(nearestEnemyBotOrTreeOrNeutralTree());
+		}
     }
 	
 	public void strike() throws GameActionException{

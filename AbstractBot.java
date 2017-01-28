@@ -25,6 +25,7 @@ public abstract class AbstractBot {
 	protected TreeReport trees;
 	protected BotReport bots;
 	protected Radio radio;
+	protected MapLocation enemyArchLoc;
 	
 	public AbstractBot(RobotController rc){
 		this.rc = rc;
@@ -32,14 +33,14 @@ public abstract class AbstractBot {
 		this.trees = new TreeReport(rc);
 		this.bots = new BotReport(rc);
 		this.radio = new Radio(rc);
+		this.enemyArchLoc = rc.getInitialArchonLocations(team.opponent())[0];
 	}
 	
 	public abstract void run() throws GameActionException;
 	
     /** Move in random direction*/
     public boolean wander() throws GameActionException {
-        Direction dir = BotUtils.randomDirection();
-        return tryMove(dir);
+    	return moveAvoidingGardeners();
     }
 
     /** most fundamental movement funciton we've made*/
@@ -312,6 +313,62 @@ public abstract class AbstractBot {
 
         }
     }
+    
+    public float[] initializeGradient(){
+    	return new float[2];
+    }
+    
+    public float[] updateGradient(float[] gradient, MapLocation myLoc, MapLocation loc, float strength){
+		float dist = myLoc.distanceTo(loc);
+		gradient[0] += strength * (myLoc.x - loc.x) / (dist*dist*dist);
+		gradient[1] += strength * (myLoc.y - loc.y) / (dist*dist*dist);
+		return gradient;
+	}
+	
+	public boolean followGradient(float[] gradient) throws GameActionException{
+		MapLocation myLoc=rc.getLocation(), spot;
+		Direction moveDir = new Direction((float) Math.atan2(gradient[1], gradient[0]));
+		if(!tryMove(moveDir)){
+			if(!tryMove(moveDir.rotateLeftDegrees(90))){
+				if(!tryMove(moveDir.rotateRightDegrees(90)))
+					return false;
+			}
+		}
+		return true;
+	}
+	
+	public boolean moveAvoidingGardeners() throws GameActionException{
+		int count = 0;
+	    float[] gradient = initializeGradient();
+	    MapLocation myLoc = rc.getLocation();
+	    for(RobotInfo bot: bots.getBots(team)){
+    		if (bot.type == RobotType.ARCHON){
+    			gradient = updateGradient(gradient, myLoc, bot.location, 1);	
+    			count++;
+    		} else if(bot.type == RobotType.GARDENER && myLoc.distanceTo(bot.location) < 5){
+    			gradient = updateGradient(gradient, myLoc, bot.location, 1);	
+    			count++;
+    		}
+	    }
+	    if(count > 0)
+	    	return followGradient(gradient);
+	    else {
+	        Direction dir = BotUtils.randomDirection();
+	        return tryMove(dir);
+	    }
+	}
+	
+	public boolean potentialMove(MapLocation goal) throws GameActionException{
+	    float[] gradient = initializeGradient();
+	    MapLocation myLoc = rc.getLocation();
+	    gradient = updateGradient(gradient, myLoc, goal, -1000);
+	    for(RobotInfo bot: bots.getBots(team)){
+    		if (bot.type == RobotType.ARCHON){
+    			gradient = updateGradient(gradient, myLoc, bot.location, 1);	
+    		}
+	    }
+	    return followGradient(gradient);
+	}
     
 
     public void donateBullets2() throws GameActionException {

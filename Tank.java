@@ -22,7 +22,10 @@ public class Tank extends AbstractBot {
 		bots.update();
 		dodge();
 		attack();
-		moveTowardsOrWander(this.nearestEnemyBotOrTree());
+		if (radio.forwardMarch())
+			potentialMove(enemyArchLoc);
+		else
+			moveTowardsOrWander(this.nearestEnemyBotOrTree());
 	}
 
 	public boolean move(Direction dir) throws GameActionException {
