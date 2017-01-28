@@ -16,7 +16,7 @@ public class Scout extends AbstractBot {
 	public void run() throws GameActionException {
         trees.update();
         bots.update();
-        //if (rc.getRoundNum() < 150) moveTo(rc.getInitialArchonLocations(team.opponent())[0]);
+        if (rc.getRoundNum() < 150) moveTo(rc.getInitialArchonLocations(team.opponent())[0]);
         dodge();
         shake();
         hideOnTree();
