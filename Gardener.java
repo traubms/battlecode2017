@@ -51,28 +51,31 @@ public class Gardener extends AbstractBot {
 		    float[] gradient = new float[2];
 		    MapLocation myLoc = rc.getLocation();
 		    for(RobotInfo bot: bots.getBots(team)){
-		    	if (bot.type == RobotType.ARCHON || bot.type == RobotType.GARDENER){
+		    	if (bot.type == RobotType.GARDENER || bot.type == RobotType.ARCHON){
 		    		count++;
 		    		dist = myLoc.distanceTo(bot.location);
 		    		if (dist < minDist)
 		    			minDist = dist;
 		    	}
 	    		if (bot.type == RobotType.ARCHON)
-	    			strength = 10;
+	    			strength = 2;
 	    		else
 	    			strength = 1;
 	    		gradient = updateGradient(gradient, myLoc, bot.location, strength);	
 		    }
-		    float stopDist = (float) Math.max(6.5, 3 * );
-		    System.out.println(stopDist);
+		    float stopDist = 8f;
 		    if (count == 0 || minDist > stopDist){
-		    	if (getBuildDirections().size() < 3)
-		    		this.build(RobotType.LUMBERJACK);
-		    	else 
+		    	List<Direction> bd = getBuildDirections();
+		    	System.out.println(bd.size());
+		    	if (bd.size() < 3 && bd.size() > 0){
+		    		this.build(bd.get(0), RobotType.LUMBERJACK);
+		    		System.out.println("lumber...");
+		    	}else 
 		    		foundHome = true;
 		    } 
 		    if (!foundHome){
-		    	gradient = updateGradient(gradient, myLoc, base, .1f);
+		    	if (count == 0)
+		    		gradient = updateGradient(gradient, myLoc, base, .1f);
 		    	for(TreeInfo tree: trees.getTrees(team))
 		    		gradient = updateGradient(gradient, myLoc, tree.location, 1);
 		    	followGradient(gradient);
@@ -119,11 +122,13 @@ public class Gardener extends AbstractBot {
     	}
     }
     
-    public List<Direction> getBuildDirections(){
+    public List<Direction> getBuildDirections() throws GameActionException{
+    	MapLocation center = rc.getLocation(), loc;
     	List<Direction> result = new ArrayList<Direction>();
     	Direction dir = this.dirToBase.opposite();
     	for (int i = 0; i < 6; i++) {
-			if (rc.canBuildRobot(RobotType.LUMBERJACK, dir))
+    		loc = center.add(dir, 2.1f);
+			if (rc.onTheMap(loc, 1) && !rc.isCircleOccupied(loc, 1))
 				result.add(dir);
 			dir = dir.rotateLeftDegrees((float) (360. / 6));
 		}
@@ -206,9 +211,17 @@ public class Gardener extends AbstractBot {
     }
     
     public boolean build(RobotType robotType) throws GameActionException{
-	    Direction tryBuildDir = this.dirToBase.opposite();
-	    return build(tryBuildDir, robotType);
-    }
+    	List<Direction> buildDirs = getBuildDirections();
+		if (buildDirs.size() > 0){
+			for (Direction tryBuildDir: buildDirs) {
+				if (this.build(tryBuildDir, robotType)){ // if build successful, break and return true
+					return true;
+				}
+			}
+		}
+		return false; // build not successful, so return false
+	}
+
     
     /**build functions for various robot types*/
 	public boolean build(Direction d, RobotType type) throws GameActionException{

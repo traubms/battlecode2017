@@ -84,7 +84,6 @@ public class Archon extends AbstractBot {
     public void makeBuildOrders() throws GameActionException{
 		int lumbers=0, tree=0, scouts=0, tanks=0, soldiers=0, gardeners=0;
     	//TODO
-		
 		tree = 3;
 		if(trees.getTreeCounts(this.team) > 2){
 			//Scout
@@ -94,6 +93,9 @@ public class Archon extends AbstractBot {
 			lumbers = (int) trees.getTreeCounts(Team.NEUTRAL) / 2;
     	
 			soldiers = (int) (Math.random() + .3) + bots.getBotCounts(team.opponent());
+			
+			if (soldiers > 0)
+				lumbers = 0;
     	
 			if (rc.getTeamBullets() > 300)
 				tanks = 1;
@@ -104,7 +106,7 @@ public class Archon extends AbstractBot {
             gardeners = 1; 
     	if(getTypeCount(RobotType.GARDENER, this.team) >= 4 || gardenersMade >= 5)
     		gardeners = 0;
-    	if(Math.random() < .01)
+    	if(Math.random() < .05)
     		gardeners = 1;
 
     	Map<Codes, Integer> orders = new HashMap<Codes, Integer>();
