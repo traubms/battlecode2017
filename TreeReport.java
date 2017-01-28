@@ -64,6 +64,10 @@ public class TreeReport {
 		}
 		return weakest;
 	}
+	
+	public int getNumberSurroundingTrees(){
+		return withinInteract.get(Team.A) + withinInteract.get(Team.B) + withinInteract.get(Team.NEUTRAL);
+	}
 
 	public TreeInfo getClosestTree(Team t){
 		if (this.trees.get(t).size() > 0)

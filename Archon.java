@@ -10,10 +10,12 @@ import java.util.Map;
 public class Archon extends AbstractBot {
     
 	private int scoutsMade;
+	private int gardenersMade;
 	
 	public Archon(RobotController rc) {
 		super(rc);
 		this.scoutsMade = 0;
+		this.gardenersMade = 0;
 	}
 
 	/*
@@ -30,6 +32,7 @@ public class Archon extends AbstractBot {
     	orderScoutMode(); //tell all scout units which behavior protocol to run each turn
 		makeBuildOrders(); //build robots
     	donateBullets2(); //buy victory points
+    	wander();
     }
 
 
@@ -79,42 +82,38 @@ public class Archon extends AbstractBot {
      * make soldier first but also doesn't make more gardeners than we need
      */
     public void makeBuildOrders() throws GameActionException{
-        int maxGardeners = 15; 
-		int lumbers, tree, scouts, tanks, soldiers, gardeners;
+		int lumbers=0, tree=0, scouts=0, tanks=0, soldiers=0, gardeners=0;
     	//TODO
-		//LumberJacks
-		lumbers = (int) trees.getTreeCounts(Team.NEUTRAL) / 2;
-    	
-		//Trees
-		tree = (int) Math.max(Math.random() + .2, 10 - trees.getTreeCounts(this.team));
-    	
-		//Gardeners
-		gardeners = (int) Math.min(rc.getTeamBullets() / 100, maxGardeners);
 		
-		//Scout
-    	scouts = (int) (Math.random() + .3);
+		tree = 3;
+		if(trees.getTreeCounts(this.team) > 2){
+			//Scout
+	    	scouts = (int) (Math.random() + .1);
+	    	
+			//LumberJacks
+			lumbers = (int) trees.getTreeCounts(Team.NEUTRAL) / 2;
     	
-    	//Tanks
-    	tanks = 0; 
+			soldiers = (int) (Math.random() + .3) + bots.getBotCounts(team.opponent());
     	
-    	//Soldiers
-    	soldiers = 1;
-    	
-    	boolean noTanks = noBots(RobotType.TANK, this.team); 
-        boolean needSoldiers = getTypeCount(RobotType.SOLDIER, this.team) < soldiers; 
-    	Map<Codes, Integer> orders = new HashMap<Codes, Integer>();
-    	
-    	if(soldiers > 0 || lumbers > 0)
-    		tree = 0;
-        if(getTypeCount(RobotType.GARDENER, this.team) >= gardeners)
-            gardeners = 0; 
+			if (rc.getTeamBullets() > 300)
+				tanks = 1;
+			
+		}
+		gardeners = 0;
+    	if(getTypeCount(RobotType.GARDENER, this.team) < 2 || Math.random() < .1)
+            gardeners = 1; 
+    	if(getTypeCount(RobotType.GARDENER, this.team) >= 4 || gardenersMade >= 5)
+    		gardeners = 0;
+    	if(Math.random() < .01)
+    		gardeners = 1;
 
+    	Map<Codes, Integer> orders = new HashMap<Codes, Integer>();
         orders.put(Codes.SOLIDER, soldiers);
         orders.put(Codes.TANK, tanks);
         orders.put(Codes.LUMBERJACK, lumbers);
         orders.put(Codes.SCOUT, scouts);
     	orders.put(Codes.TREE, tree);
-//    	System.out.println(orders);
+    	System.out.println(orders);
     	if (gardeners > 0)
     		hireGardener();
     	radio.makeBuildOrders(orders);
@@ -125,17 +124,19 @@ public class Archon extends AbstractBot {
 	 *
 	 * @throws GameActionException
 	 */
-	public void hireGardener() throws GameActionException {
-		int degree = 0;
-		int round = rc.getRoundNum();
-		while (degree < 360) {
-			float radian = ((float) degree * (float) Math.PI) / 180;
-			Direction direction = new Direction(radian);
-			if (rc.canHireGardener(direction) && (round == 1 || round % 60 == 0)) {
-				rc.hireGardener(direction);
+	public boolean hireGardener() throws GameActionException {
+		Direction dir = BotUtils.randomDirection();
+		int numTries = 5, count = 0;
+		while (count < numTries) {
+			if (rc.canHireGardener(dir)) {
+				rc.hireGardener(dir);
+				this.gardenersMade++;
+				return true;
 			}
-			degree += 120;
+			dir = dir.rotateLeftDegrees(360 / numTries);
+			count++;
 		}
+		return false;
 	}
 
 }

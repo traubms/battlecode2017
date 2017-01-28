@@ -3,6 +3,7 @@ package battlecode2017;
 import battlecode.common.*;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -13,6 +14,8 @@ public class Gardener extends AbstractBot {
 	List<MapLocation> treeTargets;
 	List<MapLocation> builtTrees;
 	boolean makeTree;
+	boolean foundHome;
+	Map<Direction, Boolean> canBuild;
 	
 	public Gardener(RobotController rc) {
 		super(rc);
@@ -27,21 +30,82 @@ public class Gardener extends AbstractBot {
 		this.treeTargets = calculateTreeTargets();
 		this.builtTrees = new ArrayList<MapLocation>();
 		this.makeTree = false;
+		this.foundHome = false;
 	}
 
 	public void run() throws GameActionException {
 	    bots.update();
 	    trees.update();
-	    checkOnTrees();
-	    
-	    TreeInfo weakestTree = trees.getWeakestTreeWithinInteract(team);
-	    if(weakestTree != null && weakestTree.health < GameConstants.BULLET_TREE_MAX_HEALTH / 2){
-	    	this.moveTo(weakestTree.location);
-	    	this.waterWeakest();
-	    } else {
-	    	followBuildCommands();
+//	    checkOnTrees();
+	    waterWeakest();
+//	    TreeInfo weakestTree = trees.getWeakestTreeWithinInteract(team);
+//	    if(weakestTree != null && weakestTree.health < GameConstants.BULLET_TREE_MAX_HEALTH / 2){
+//	    	this.moveTo(weakestTree.location);
+//	    	this.waterWeakest();
+//	    } else {
+//	    	
+//	    }
+	    if(!foundHome){
+		    int count = 0;
+		    float minDist = 10000, dist, strength;
+		    float[] gradient = new float[2];
+		    MapLocation myLoc = rc.getLocation();
+		    for(RobotInfo bot: bots.getBots(team)){
+		    	if (bot.type == RobotType.ARCHON || bot.type == RobotType.GARDENER){
+		    		count++;
+		    		dist = myLoc.distanceTo(bot.location);
+		    		if (dist < minDist)
+		    			minDist = dist;
+		    	}
+	    		if (bot.type == RobotType.ARCHON)
+	    			strength = 10;
+	    		else
+	    			strength = 1;
+	    		gradient = updateGradient(gradient, myLoc, bot.location, strength);	
+		    }
+		    float stopDist = (float) Math.max(6.5, 3 * );
+		    System.out.println(stopDist);
+		    if (count == 0 || minDist > stopDist){
+		    	if (getBuildDirections().size() < 3)
+		    		this.build(RobotType.LUMBERJACK);
+		    	else 
+		    		foundHome = true;
+		    } 
+		    if (!foundHome){
+		    	gradient = updateGradient(gradient, myLoc, base, .1f);
+		    	for(TreeInfo tree: trees.getTrees(team))
+		    		gradient = updateGradient(gradient, myLoc, tree.location, 1);
+		    	followGradient(gradient);
+		    }
+	    }
+	    followBuildCommands();
+	    if(foundHome){	
+	    	if (rc.getTeamBullets() > 300)
+	    		plantTree();
 	    }
 	    
+	}
+	
+	public float[] updateGradient(float[] gradient, MapLocation myLoc, MapLocation loc, float strength){
+		float dist = myLoc.distanceTo(loc);
+		gradient[0] += strength * (myLoc.x - loc.x) / (dist*dist*dist);
+		gradient[1] += strength * (myLoc.y - loc.y) / (dist*dist*dist);
+		return gradient;
+	}
+	
+	public boolean followGradient(float[] gradient) throws GameActionException{
+		MapLocation myLoc=rc.getLocation(), spot;
+		Direction moveDir;
+		for(int i = 0; i < 3; i++){
+		moveDir = new Direction((float) Math.atan2(gradient[1], gradient[0]));
+			if(tryMove(moveDir))
+				return true;
+			else if(i < 2){
+				spot = myLoc.add(moveDir, .3f);
+				gradient = updateGradient(gradient, myLoc, spot, 1);
+			}
+		}
+		return false;
 	}
 
 	/** Checks if tree can be planted in a direction and plants there 
@@ -55,14 +119,26 @@ public class Gardener extends AbstractBot {
     	}
     }
     
-    public boolean plantTree() throws GameActionException{
-	    Direction tryPlantDir = BotUtils.randomDirection();
-		for (int i = 0; i < 8; i++) {
-			tryPlantDir = tryPlantDir.rotateLeftDegrees((float) (360. / 8));
-			if (this.plantTree(tryPlantDir)){ // if build successful, break and return true
-				return true;
-			}
+    public List<Direction> getBuildDirections(){
+    	List<Direction> result = new ArrayList<Direction>();
+    	Direction dir = this.dirToBase.opposite();
+    	for (int i = 0; i < 6; i++) {
+			if (rc.canBuildRobot(RobotType.LUMBERJACK, dir))
+				result.add(dir);
+			dir = dir.rotateLeftDegrees((float) (360. / 6));
 		}
+    	return result;
+    }
+
+    public boolean plantTree() throws GameActionException{
+    	List<Direction> buildDirs = getBuildDirections();
+    	if (buildDirs.size() > 1){
+			for (Direction tryPlantDir: buildDirs) {
+				if (this.plantTree(tryPlantDir)){ // if build successful, break and return true
+					return true;
+				}
+			}
+    	}
 		return false; // build not successful, so return false
     }
     
@@ -120,8 +196,10 @@ public class Gardener extends AbstractBot {
     
     public boolean build(Codes code) throws GameActionException{
     	if (code == Codes.TREE){
-    		this.makeTree = true;
-    		return this.plantTreeInFormation();
+    		if(this.foundHome)
+    			return this.plantTree();
+    		else
+    			return false;
     	} else {
     		return build(code.getRobotType());
     	}
