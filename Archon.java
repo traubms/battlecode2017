@@ -114,7 +114,7 @@ public class Archon extends AbstractBot {
         orders.put(Codes.LUMBERJACK, lumbers);
         orders.put(Codes.SCOUT, scouts);
     	orders.put(Codes.TREE, tree);
-    	System.out.println(orders);
+//    	System.out.println(orders);
     	if (gardeners > 0)
     		hireGardener();
     	radio.makeBuildOrders(orders);

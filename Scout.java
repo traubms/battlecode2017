@@ -20,19 +20,18 @@ public class Scout extends AbstractBot {
 	public void run() throws GameActionException {
 
 		//switch between different scout behaviors (channel 5 is the SCOUT_MODE channel used to tell the Scout which behavior to enact)
-		switch(radio.listen(Channels.SCOUT_MODE)) {
+		int mode = radio.listen(Channels.SCOUT_MODE);
+		System.out.println(mode);
+		switch(mode) {
 			case 17:
 				Attack_Mode();
 				break;
-
 			case 19:
 				Harvest_Mode();
 				break;
-
 			case 23:
 				Defend_Mode();
 				break;
-
 			case 27:
 				Recon_Mode();
 				break;
@@ -54,16 +53,25 @@ public class Scout extends AbstractBot {
 		TreeInfo enemy_tree = trees.getClosestTree(rc.getTeam().opponent());
 		List<RobotInfo> nearbyEnemyList = bots.getBots(rc.getTeam().opponent());
 
+		float tree_dist;
+		float enemy_dist;
+		Direction retreat;
+		if (enemy_tree == null)
+			tree_dist = 100000;
+		else 
+			tree_dist = enemy_tree.getLocation().distanceTo(rc.getLocation());
 		for (int i = 0; i < nearbyEnemyList.size(); i++) { //measure the risk (enemy distance vs target distance) to decide whether or not to attack
-			float enemy_dist = nearbyEnemyList.get(i).getLocation().distanceTo(rc.getLocation());
-			float tree_dist = enemy_tree.getLocation().distanceTo(rc.getLocation());
+			enemy_dist = nearbyEnemyList.get(i).getLocation().distanceTo(rc.getLocation());
 			if (enemy_dist - tree_dist >= 1.0) {
 				attack();
 				tryMove(rc.getLocation().directionTo(enemy_tree.getLocation())); //move towards target tree
 			} else {
 				while (enemy_dist <= 6.0) {
 					//direction opposite enemy
-					Direction retreat = new Direction(rc.getLocation().directionTo(enemy_tree.getLocation()).rotateLeftRads((float)Math.PI).radians);
+					if (enemy_tree == null)
+						retreat = nearbyEnemyList.get(i).getLocation().directionTo(rc.getLocation());
+					else
+						retreat = new Direction(rc.getLocation().directionTo(enemy_tree.getLocation()).rotateLeftRads((float)Math.PI).radians);
 					if (tryMove(retreat) != false) {
 						tryMove(retreat); //attempt to move away from enemy
 						attack();
@@ -74,7 +82,6 @@ public class Scout extends AbstractBot {
 				}
 			}
 		}
-
 	}
 
 	//harvest bullets from neutral bullet trees mode (Code 19)
@@ -110,8 +117,8 @@ public class Scout extends AbstractBot {
 			if (botList.get(i).getType() == RobotType.ARCHON)
 				archon_locations.add(botList.get(i).getLocation());
 		}
-
-		//randomly choose an arcon to defend and find its location (ensures scouts are approximately evenly spread out per archon)
+		
+		//randomly choose an archon to defend and find its location (ensures scouts are approximately evenly spread out per archon)
 		int i = (int)Math.rint(archon_locations.size());
 		MapLocation arc_loc = archon_locations.get(i);
 
