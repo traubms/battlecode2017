@@ -81,7 +81,7 @@ public class Archon extends AbstractBot {
     public void makeBuildOrders() throws GameActionException{
         int maxGardeners = 15; 
 		int lumbers, tree, scouts, tanks, soldiers, gardeners;
-    	
+    	//TODO
 		//LumberJacks
 		lumbers = (int) trees.getTreeCounts(Team.NEUTRAL) / 2;
     	

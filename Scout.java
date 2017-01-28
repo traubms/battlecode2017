@@ -19,6 +19,21 @@ public class Scout extends AbstractBot {
 	
 	public void run() throws GameActionException {
 
+        trees.update();
+        bots.update();
+
+        if (rc.getRoundNum() < 150) moveTo(rc.getInitialArchonLocations(team.opponent())[0]);
+        dodge();
+        shake();
+        hideOnTree();
+        MapLocation goal = nearestEnemyBotOrTreeOrBulletTree();
+        if (goal == null)
+            wander();
+        else
+        	moveTowardsOrWander(goal);
+        attack();
+
+        /**
 		//switch between different scout behaviors (channel 5 is the SCOUT_MODE channel used to tell the Scout which behavior to enact)
 		int mode = radio.listen(Channels.SCOUT_MODE);
 		System.out.println(mode);
@@ -39,7 +54,7 @@ public class Scout extends AbstractBot {
 			default: //default behavior - scout mode
 				Recon_Mode();
 		}
-
+    */
     }
 
     //************************** Scout Behavior Modes **************************//
