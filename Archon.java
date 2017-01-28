@@ -1,16 +1,11 @@
 package battlecode2017;
 
-import battlecode.common.GameActionException;
-import battlecode.common.RobotController;
-import battlecode.common.RobotInfo;
+import battlecode.common.*;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import battlecode.common.Direction;
-import battlecode.common.RobotType;
-import battlecode.common.Team;
 
 public class Archon extends AbstractBot {
     
@@ -31,9 +26,23 @@ public class Archon extends AbstractBot {
     public void run() throws GameActionException {
 	    trees.update();
     	bots.update();
-		makeBuildOrders(); 
-    	donateBullets2();
-   }
+
+    	orderScoutMode(); //tell all scout units which behavior protocol to run each turn
+		makeBuildOrders(); //build robots
+    	donateBullets2(); //buy victory points
+    }
+
+
+   	public void orderScoutMode() throws GameActionException { //broadcasts to scout units to dictate their behavior mode depending available bullet trees etc.
+		
+		ArrayList<TreeInfo> bulletTrees = trees.getBulletTrees();
+		if (bulletTrees.size() > 0) { //neutral bullet trees still out there
+			radio.broadcast(Channels.SCOUT_MODE, Codes.SCOUTMODE_HARVEST);
+		} else { //no more bullet trees left to harvest
+			radio.broadcast(Channels.SCOUT_MODE, Codes.SCOUTMODE_ATTACK);
+		}
+
+	}
     
     public RobotInfo findClosestRobotOfType(RobotType type) {
         for(RobotInfo r : this.bots.getBots(rc.getTeam())) {
@@ -128,4 +137,5 @@ public class Archon extends AbstractBot {
 			degree += 120;
 		}
 	}
+
 }

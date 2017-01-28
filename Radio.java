@@ -14,23 +14,23 @@ public class Radio {
 			Codes.LUMBERJACK,
 			Codes.SCOUT,
 			Codes.TANK,
-			Codes.SOLDIER
+			Codes.SOLIDER
 	};
 
 	public Radio(RobotController rc) {
 		this.rc = rc;
 	}
 	
-	public float listen(int channel) throws GameActionException{
-		return rc.readBroadcastFloat(channel);
+	public int listen(int channel) throws GameActionException{
+		return (int)rc.readBroadcastFloat(channel);
 	}
 	
-	public float listen(Channels channel) throws GameActionException{
+	public int listen(Channels channel) throws GameActionException{
 		return listen(channel.getValue());
 	}
 	
 	public void broadcast(int channel, float data) throws GameActionException{
-		rc.broadcastFloat(channel, data);
+		rc.broadcastFloat(channel, (int)data);
 	}
 	
 	public void broadcast(Channels channel, Codes data) throws GameActionException{
