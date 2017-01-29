@@ -122,7 +122,8 @@ public class Archon extends AbstractBot {
 		int lumbers=0, tree=0, scouts=0, tanks=0, soldiers=0, gardeners=0;
     	//TODO
 		tree = 3;
-		if(trees.getTreeCounts(this.team) > 2){
+		int treeCounts = radio.getTreeCounts();
+		if(treeCounts > 2){
 			//Scout
 	    	scouts = (int) (Math.random() + .03);
 	    	
@@ -133,7 +134,7 @@ public class Archon extends AbstractBot {
     	
 //			if (rc.getTeamBullets() > 300)
 //				tanks = 1;
-		}
+		} 
 		gardeners = 0;
 		int gCount = getTypeCount(RobotType.GARDENER, this.team) ;
 		if(gardenersMade > 0 && rc.getTeamBullets() > 150){
