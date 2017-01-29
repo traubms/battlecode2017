@@ -31,7 +31,7 @@ public class Radio {
 	}
 	
 	public void broadcast(int channel, float data) throws GameActionException{
-		rc.broadcastFloat(channel, (int)data);
+		rc.broadcastFloat(channel, data);
 	}
 	
 	public void broadcast(Channels channel, Codes data) throws GameActionException{
@@ -83,8 +83,8 @@ public class Radio {
 			broadcast(Channels.BUILD, message * bot.getValue());
 	}
 	
-	public void setForwardMarch() throws GameActionException{
-		this.broadcast(Channels.FORWARD_MARCH, 1);
+	public void setForwardMarch(boolean march) throws GameActionException{
+		this.broadcast(Channels.FORWARD_MARCH, (march) ? 1 : 0);
 	}
 	
 	public boolean forwardMarch() throws GameActionException{
@@ -93,7 +93,7 @@ public class Radio {
 	
 	public void setSwarmLocation(MapLocation loc) throws GameActionException{
 		this.broadcast(Channels.SWARM_X, loc.x);
-		this.broadcast(Channels.SWARM_Y, loc.x);
+		this.broadcast(Channels.SWARM_Y, loc.y);
 	}
 
 	public MapLocation swarmLocation() throws GameActionException {
@@ -102,7 +102,7 @@ public class Radio {
 	
 	public void reachedSwarmLocation(MapLocation loc) throws GameActionException{
 		this.broadcast(Channels.REACHED_SWARM_X, loc.x);
-		this.broadcast(Channels.REACHED_SWARM_Y, loc.x);
+		this.broadcast(Channels.REACHED_SWARM_Y, loc.y);
 	}
 
 	public MapLocation checkReachSwarmLocation() throws GameActionException {

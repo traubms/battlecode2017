@@ -23,6 +23,8 @@ public class Tank extends AbstractBot {
 		dodge();
 		attack();
 		if (radio.forwardMarch())
+			swarm = true;
+		if (swarm)
 			followMarchingOrders();
 		else
 			moveTowardsOrWander(this.nearestEnemyBotOrTree());

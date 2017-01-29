@@ -63,7 +63,6 @@ public class Gardener extends AbstractBot {
 		    float stopDist = 8.5f;
 		    if (count == 0 || (minDist > stopDist && minArchDist > stopDist * 3 / 4)){
 		    	List<Direction> bd = getBuildDirections();
-		    	System.out.println(bd.size());
 		    	if (bd.size() < 3 && bd.size() > 0){
 		    		this.build(bd.get(0), RobotType.LUMBERJACK);
 		    		System.out.println("lumber...");

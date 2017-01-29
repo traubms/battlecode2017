@@ -26,6 +26,7 @@ public abstract class AbstractBot {
 	protected TreeReport trees;
 	protected BotReport bots;
 	protected Radio radio;
+	protected boolean swarm;
 	
 	public AbstractBot(RobotController rc){
 		this.rc = rc;
@@ -33,6 +34,7 @@ public abstract class AbstractBot {
 		this.trees = new TreeReport(rc);
 		this.bots = new BotReport(rc);
 		this.radio = new Radio(rc);
+		this.swarm = false;
 	}
 	
 	public abstract void run() throws GameActionException;
@@ -56,9 +58,10 @@ public abstract class AbstractBot {
     
     public boolean followMarchingOrders() throws GameActionException{
     	MapLocation loc = radio.swarmLocation();
-    	if (rc.getLocation().distanceTo(loc) < 5)
+    	if (rc.getLocation().distanceTo(loc) < 5){
     		radio.reachedSwarmLocation(loc);
-    	if (!potentialMove(loc)) {
+    		System.out.println("I'M HERE: " + loc);
+    	} if (!potentialMove(loc)) {
     		attackNeutralTrees();
     		return false;
     	} else
@@ -66,7 +69,7 @@ public abstract class AbstractBot {
     }
     
     public boolean attackNeutralTrees() throws GameActionException{
-    	List<TreeInfo> neutralTrees = trees.getTrees(Team.NEUTRAL);
+    	List<TreeInfo> neutralTrees = trees.getTreesWithinInteract(Team.NEUTRAL);
 		if (neutralTrees.size() > 0) {
 			return fireShot(neutralTrees.get(0)) != null;
 		} else 
@@ -371,7 +374,6 @@ public abstract class AbstractBot {
 	}
 	
 	public boolean followGradient(float[] gradient) throws GameActionException{
-		MapLocation myLoc=rc.getLocation(), spot;
 		Direction moveDir = new Direction((float) Math.atan2(gradient[1], gradient[0]));
 		if(!tryMove(moveDir)){
 			if(!tryMove(moveDir.rotateLeftDegrees(90))){
@@ -403,10 +405,28 @@ public abstract class AbstractBot {
 	    }
 	}
 	
-	public boolean potentialMove(MapLocation goal) throws GameActionException{
+	public boolean avoidEnemies() throws GameActionException{
+		int count = 0;
 	    float[] gradient = initializeGradient();
 	    MapLocation myLoc = rc.getLocation();
-	    gradient = updateGradient(gradient, myLoc, goal, -1000);
+	    for(RobotInfo bot: bots.getBots(team.opponent())){
+    		if (bot.type == RobotType.SCOUT || bot.type == RobotType.SOLDIER || bot.type == RobotType.TANK || bot.type == RobotType.LUMBERJACK){
+    			gradient = updateGradient(gradient, myLoc, bot.location, 1);	
+    			count++;
+    		}
+	    }
+	    if(count > 0)
+	    	return followGradient(gradient);
+	    else {
+	        Direction dir = BotUtils.randomDirection();
+	        return tryMove(dir);
+	    }
+	}
+	
+	public boolean potentialMove(MapLocation goal) throws GameActionException{
+		MapLocation myLoc = rc.getLocation();
+		float[] gradient = initializeGradient();
+	    gradient = updateGradient(gradient, myLoc, goal, -10000);
 	    for(RobotInfo bot: bots.getBots(team)){
     		if (bot.type == RobotType.ARCHON){
     			gradient = updateGradient(gradient, myLoc, bot.location, 1);	

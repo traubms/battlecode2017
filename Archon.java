@@ -39,21 +39,35 @@ public class Archon extends AbstractBot {
 		makeBuildOrders(); //build robots
     	donateBullets2(); //buy victory points
     	dodge();
-    	wander();
+    	if (bots.getBotCounts(team.opponent()) > 0)
+    		avoidEnemies();
+    	else
+    		moveAvoidingGardeners();
     	decideSwarmLocation();
     }
     
     public void decideSwarmLocation() throws GameActionException {
-    	if (rc.getRoundNum() > 1200) {
-    		MapLocation reached = radio.checkReachSwarmLocation();
-    		if (this.enemyArchLocs.contains(reached))
-    			enemyArchLocs.remove(reached);
-    		if (enemyArchLocs.size() > 0)
-    			radio.setSwarmLocation(enemyArchLocs.get(0));
-    		else {
-    			radio.setSwarmLocation(rc.getLocation());
+    	int round = rc.getRoundNum() ;
+    	if (round >= 1200 && round % 300 < 125 && enemyArchLocs.size() > 0) {
+    		radio.setForwardMarch(true);
+    		MapLocation reached = radio.checkReachSwarmLocation(), target;
+    		if (reached != null){
+    			for(MapLocation loc: enemyArchLocs){
+    				if (loc.distanceTo(reached) < 5){
+    					enemyArchLocs.remove(loc);
+    					System.out.println("HEARD YOU LOUD AND CLEAR: " + enemyArchLocs);
+    					break;
+    				}
+    			}
     		}
-    	}
+    		if (enemyArchLocs.size() > 0 && round % 300 < 100)
+    			target = enemyArchLocs.get(0);
+    		else 
+    			target = rc.getLocation();
+    		radio.setSwarmLocation(target);
+//    		System.out.println("SWARM: " + target);
+    	} else
+    		radio.setForwardMarch(false);
     }
 
 
@@ -138,7 +152,7 @@ public class Archon extends AbstractBot {
         orders.put(Codes.LUMBERJACK, lumbers);
         orders.put(Codes.SCOUT, scouts);
     	orders.put(Codes.TREE, tree);
-    	System.out.println(orders);
+//    	System.out.println(orders);
     	if (gardeners > 0)
     		hireGardener();
     	radio.makeBuildOrders(orders);

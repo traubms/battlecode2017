@@ -15,9 +15,12 @@ public class Soldier extends AbstractBot {
 		shake();
 		dodge();
 		attack();
-		if (radio.forwardMarch())
+		if (radio.forwardMarch()){
+			swarm = true;
+		if (swarm)
 			followMarchingOrders();
-		else
+		} else {
 			moveTowardsOrWander(this.nearestEnemyBotOrTree());
+		}
 	}
 }
