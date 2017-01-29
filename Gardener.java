@@ -11,9 +11,6 @@ public class Gardener extends AbstractBot {
 	
 	MapLocation base;
 	Direction dirToBase;
-	List<MapLocation> treeTargets;
-	List<MapLocation> builtTrees;
-	boolean makeTree;
 	boolean foundHome;
 	Map<Direction, Boolean> canBuild;
 	
@@ -27,9 +24,6 @@ public class Gardener extends AbstractBot {
 				break;
 			}
 		}
-		this.treeTargets = calculateTreeTargets();
-		this.builtTrees = new ArrayList<MapLocation>();
-		this.makeTree = false;
 		this.foundHome = false;
 	}
 
@@ -73,8 +67,6 @@ public class Gardener extends AbstractBot {
 		    } 
 		    if (!foundHome){
 		    	gradient = updateGradient(gradient, myLoc, base, 1f);
-//		    	for(TreeInfo tree: trees.getTrees(team))
-//		    		gradient = updateGradient(gradient, myLoc, tree.location, .01f);
 		    	followGradient(gradient);
 		    }
 	    }
@@ -121,46 +113,7 @@ public class Gardener extends AbstractBot {
     	}
 		return false; // build not successful, so return false
     }
-    
-    public boolean plantTreeAwayFromBase() throws GameActionException{
-	    Direction tryPlantDir = dirToBase;
-		for (int i = 0; i < 5; i++) {
-			if (i != 2){ // not in direction away from base either
-				tryPlantDir = tryPlantDir.rotateLeftDegrees((float) (360. / 6));
-				if (this.plantTree(tryPlantDir)){ // if build successful, break and return true
-					return true;
-				}
-			}
-		}
-		return false; // build not successful, so return false
-    }
-    
-    public boolean plantTreeInFormation() throws GameActionException{
-    	MapLocation nextLoc = this.treeTargets.get(0);
-    	System.out.println(nextLoc);
-    	if(plantTree(nextLoc)){
-    		builtTrees.add(treeTargets.remove(0));
-    		makeTree = false;
-    		return true;
-    	} else {
-    		return false;
-    	}
-    }
-    
-    public boolean wanderAlongAisle() throws GameActionException{
-    	Direction dir;
-    	if (Math.random() > 5)
-    		dir = dirToBase;
-    	else
-    		dir = dirToBase.opposite();
-    	
-    	if(!this.tryMove(dir)){
-    		return this.tryMove(dir.opposite());
-    	} else{
-    		return true;
-    	}
-    }
-    
+        
     public void followBuildCommands() throws GameActionException{
     	Map<Codes, Integer> orders = radio.checkBuildOrders();
     	Codes[] botOrder = {Codes.TANK, Codes.LUMBERJACK, Codes.SOLIDER, Codes.SCOUT, Codes.TREE};
@@ -216,50 +169,7 @@ public class Gardener extends AbstractBot {
 			return false;
 	}
 
-	//TODO Make build robot logic
-	public boolean buildLogic() throws GameActionException {
-	    //check queue
-
-        //see if can build and want to build
-
-        //build
-
-        //remove from queue
-
-        //add to count of living bots of that type
-        return true;
-    }
-
-    //TODO Make planting trees logic
-    public boolean plantLogic() throws GameActionException {
-	    //check trees around
-
-        //see if its reasonable to build a tree
-
-        //if so, build in the 4 / 6 hexagonal spots, leaving an exit route
-        return true;
-    }
-
-    //TODO Make better movement logic
-    public boolean moveLogic() throws GameActionException {
-	    //check if there are enemies, maybe just scouts, within a certain distance or on trees
-        RobotInfo nearestEnemy = bots.getClosestbot(team.opponent());
-        boolean flee = (nearestEnemy!=null);
-        //if so, run away, notify soldier
-        if (flee) {
-            Direction fleeTo = nearestEnemy.location.directionTo(rc.getLocation());
-            boolean moved = tryMove(fleeTo);
-            if (moved) return true; //work in progress
-        }
-	    //check to see what I should be doing (e.g. finding a place to plant trees)
-
-        //try to sense such a location for building trees that is most convenient
-
-        //go there
-
-        return true;
-    }
-
+	
 	public void waterAndMove() throws GameActionException {
 		TreeInfo weakest = trees.getWeakestTree(team);
 	    if(trees.getTreesWithinInteract(team).size() > 0){
@@ -370,81 +280,4 @@ public class Gardener extends AbstractBot {
         else
         	return hasMoved; // always True
     }
-
-	/**
-	 * Used by a gardener to build trees and robots.
-	 *
-	 * @throws GameActionException
-	 */
-	public void plantTreesAndBuildSoldiers() throws GameActionException {
-
-		// sense the archon
-		bots.update();
-		Direction directionToMove = null;
-		for (RobotInfo robotInfo : bots.getBots(team)) {
-			if (robotInfo.getType().equals(RobotType.ARCHON)) {
-				Direction directionToArchon = rc.getLocation().directionTo(robotInfo.location);
-				directionToMove = directionToArchon.opposite();
-				if (rc.canMove(directionToMove))
-					rc.move(directionToMove, 2f);
-			}
-		}
-
-		Direction directionToBuild = directionToEnemyArchon(rc.getLocation());
-		if (rc.canBuildRobot(RobotType.SOLDIER, directionToBuild)) {
-				rc.buildRobot(RobotType.SOLDIER, directionToBuild);
-			}
-
-		if (rc.canPlantTree(directionToBuild)) {
-			rc.plantTree(directionToBuild);
-		}
-
-		float radiansToBuild = directionToBuild.getAngleDegrees() + ((float) Math.PI / 3);
-		float step = ((float) Math.PI/ 3);
-		for (float radians = radiansToBuild; radians < 2 * (float) Math.PI + radiansToBuild; radians = radians + step) {
-			Direction directionToPlant = new Direction(radians);
-			if (rc.canPlantTree(directionToPlant)) {
-				rc.plantTree(directionToPlant);
-			}
-		}
-	}
-	
-	public List<MapLocation> calculateTreeTargets(int N){
-		MapLocation ccw, cw, loc, myLoc = rc.getLocation();
-		cw = myLoc.add(dirToBase.rotateRightDegrees(90), 2+GameConstants.GENERAL_SPAWN_OFFSET);
-		ccw = myLoc.add(dirToBase.rotateRightDegrees(-90), 2+GameConstants.GENERAL_SPAWN_OFFSET);
-		List<MapLocation> result = new ArrayList<MapLocation>(N);
-		for(int i = 0; i < N; i++){
-			if (i % 2 == 0)
-				loc = ccw;
-			else
-				loc = cw;
-			result.add(loc.add(dirToBase,  -2 * (int) (i / 2)));
-		}
-		return result;
-	}
-	
-	public List<MapLocation> calculateTreeTargets(){
-		return calculateTreeTargets(10);
-	}
-	
-	public void checkOnTrees() throws GameActionException{
-		int i = 0;
-		for(MapLocation loc: builtTrees){
-			if(rc.canSenseLocation(loc) && rc.senseTreeAtLocation(loc) == null){
-				this.treeTargets.add(0, builtTrees.remove(i));
-				System.out.println("Lost a tree! " + loc);
-			}
-			i++;
-		}
-		i = 0;
-		for(MapLocation loc: this.treeTargets){
-			if(rc.canSenseLocation(loc) && rc.senseTreeAtLocation(loc) != null){
-				System.out.println("Found a tree! " + loc);
-				this.builtTrees.add(0, treeTargets.remove(i));
-			}
-			i++;
-		}
-	}
-
 }

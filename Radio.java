@@ -115,6 +115,40 @@ public class Radio {
 		}
 	}
 	
+	public void reportEnemies(BotReport bots) throws GameActionException{
+		float message = listen(Channels.ENEMY_DETECTED);
+		int round = (int) (message / 1000);
+		int count = (int) (message % 1000);
+		int numEnemies = bots.getBotCounts(rc.getTeam().opponent());
+		MapLocation myLoc;
+		if(rc.getRoundNum() - round > 20 || numEnemies > count) {
+			myLoc = rc.getLocation();
+			broadcast(Channels.ENEMY_DETECTED, 1000 * rc.getRoundNum() + numEnemies);
+			broadcast(Channels.ENEMY_DETECTED_X, myLoc.x);
+			broadcast(Channels.ENEMY_DETECTED_Y, myLoc.y);
+		}
+	}
+	
+	public MapLocation getReportedEnemies() throws GameActionException{
+		return new MapLocation(listen(Channels.ENEMY_DETECTED_X), listen(Channels.ENEMY_DETECTED_Y));
+	}
+	
+	public void reportTrees(TreeReport trees) throws GameActionException{
+		int treeCount = trees.getNumberSurroundingTrees();
+		if (treeCount > 0){
+			float message = listen(Channels.TREE_COUNT);
+			this.broadcast(Channels.TREE_COUNT, message + treeCount);
+		}
+	}
+	
+	public int getTreeCounts() throws GameActionException{
+		float message = listen(Channels.TREE_COUNT);
+		this.broadcast(Channels.TREE_COUNT, 0);
+		return (int) message;
+	}
+	
+	
+	
 	
 
 }

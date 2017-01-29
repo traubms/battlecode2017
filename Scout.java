@@ -12,9 +12,11 @@ import javax.xml.stream.Location;
 
 public class Scout extends AbstractBot {
 
-	public Scout(RobotController rc) {
+	Direction heading;
+	
+	public Scout(RobotController rc) throws GameActionException {
 		super(rc);
-		// TODO Auto-generated constructor stub
+		heading = BotUtils.randomDirection();
 	}
 	
 	public void run() throws GameActionException {
@@ -22,7 +24,8 @@ public class Scout extends AbstractBot {
         trees.update();
         bots.update();
 
-        if (rc.getRoundNum() < 150) moveTo(rc.getInitialArchonLocations(team.opponent())[0]);
+        if (rc.getRoundNum() < 150) 
+        	moveTo(rc.getInitialArchonLocations(team.opponent())[0]);
         dodge();
         shake();
         hideOnTree();
@@ -31,6 +34,7 @@ public class Scout extends AbstractBot {
             wander();
         else
         	moveTowardsOrWander(goal);
+        radio.reportEnemies(bots);
         attack();
 
         /*
@@ -56,6 +60,15 @@ public class Scout extends AbstractBot {
 		}
          */
     }
+	
+	public boolean wander() throws GameActionException{
+		while(!rc.onTheMap(rc.getLocation().add(heading, 10)))
+			heading = BotUtils.randomDirection();
+		if(!avoidEnemies(5))
+			return tryMove(heading);
+		else
+			return true;
+	}
 
     //************************** Scout Behavior Modes **************************//
 
