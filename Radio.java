@@ -6,6 +6,8 @@ import java.util.Map;
 import battlecode.common.GameActionException;
 import battlecode.common.MapLocation;
 import battlecode.common.RobotController;
+import battlecode.common.RobotType;
+import battlecode.schema.BodyType;
 
 public class Radio {
 		
@@ -15,8 +17,28 @@ public class Radio {
 			Codes.LUMBERJACK,
 			Codes.SCOUT,
 			Codes.TANK,
-			Codes.SOLIDER
+			Codes.SOLIDER,
+			Codes.GARDENER
 	};
+	public static Map<Channels, RobotType> chanToBot = new HashMap<Channels, RobotType>(6);
+	{
+		chanToBot.put(Channels.SCOUT_COUNT, RobotType.SCOUT);
+		chanToBot.put(Channels.SOLDIER_COUNT, RobotType.SOLDIER);
+		chanToBot.put(Channels.GARDENER_COUNT, RobotType.GARDENER);
+		chanToBot.put(Channels.ARCHON_COUNT, RobotType.ARCHON);
+		chanToBot.put(Channels.LUMBERJACK_COUNT, RobotType.LUMBERJACK);
+		chanToBot.put(Channels.TANK_COUNT, RobotType.TANK);
+	}
+	
+	public static Map<RobotType, Channels> botToChan = new HashMap<RobotType, Channels>(6);
+	{
+		botToChan.put(RobotType.SCOUT, Channels.SCOUT_COUNT);
+		botToChan.put(RobotType.SOLDIER, Channels.SOLDIER_COUNT);
+		botToChan.put(RobotType.GARDENER, Channels.GARDENER_COUNT);
+		botToChan.put(RobotType.ARCHON, Channels.ARCHON_COUNT);
+		botToChan.put(RobotType.LUMBERJACK, Channels.LUMBERJACK_COUNT);
+		botToChan.put( RobotType.TANK, Channels.TANK_COUNT);
+	}
 
 	public Radio(RobotController rc) {
 		this.rc = rc;
@@ -110,27 +132,34 @@ public class Radio {
 		if (loc.x == 0 && loc.y == 0){
 			return null;
 		} else {
-			reachedSwarmLocation(new MapLocation(0, 0));
+			reachedSwarmLocation(new MapLocation(loc.x, loc.y));
 			return loc;
 		}
 	}
 	
 	public void reportEnemies(BotReport bots) throws GameActionException{
 		float message = listen(Channels.ENEMY_DETECTED);
-		int round = (int) (message / 1000);
-		int count = (int) (message % 1000);
+		int round = (int) (message / 100);
+		int count = (int) (message % 100);
 		int numEnemies = bots.getBotCounts(rc.getTeam().opponent());
 		MapLocation myLoc;
-		if(rc.getRoundNum() - round > 20 || numEnemies > count) {
+		if(numEnemies > 0 && (rc.getRoundNum() - round > 20 || numEnemies > count)) {
+			System.out.println("ENEMIES FOUND: " + numEnemies);
 			myLoc = rc.getLocation();
-			broadcast(Channels.ENEMY_DETECTED, 1000 * rc.getRoundNum() + numEnemies);
+			broadcast(Channels.ENEMY_DETECTED, 100 * rc.getRoundNum() + numEnemies);
 			broadcast(Channels.ENEMY_DETECTED_X, myLoc.x);
 			broadcast(Channels.ENEMY_DETECTED_Y, myLoc.y);
 		}
 	}
 	
 	public MapLocation getReportedEnemies() throws GameActionException{
-		return new MapLocation(listen(Channels.ENEMY_DETECTED_X), listen(Channels.ENEMY_DETECTED_Y));
+		float x, y;
+		x = listen(Channels.ENEMY_DETECTED_X);
+		y = listen(Channels.ENEMY_DETECTED_Y);
+		if (x == 0 && y == 0)
+			return null;
+		else
+			return new MapLocation(x, y);
 	}
 	
 	public void reportTrees(TreeReport trees) throws GameActionException{
@@ -145,6 +174,22 @@ public class Radio {
 		float message = listen(Channels.TREE_COUNT);
 		this.broadcast(Channels.TREE_COUNT, 0);
 		return (int) message;
+	}
+	
+	
+	public Map<RobotType, Integer> rollCall() throws GameActionException{
+		Map<RobotType, Integer> counts = new HashMap<RobotType, Integer>();
+		for(Channels chan: chanToBot.keySet()){
+			counts.put(chanToBot.get(chan), listen(chan));
+			broadcast(chan, 0);
+		}
+		return counts;
+	}
+	
+	public void soundOff() throws GameActionException {
+		Channels chan = botToChan.get(rc.getType());
+		float message = listen(chan);
+		this.broadcast(chan, message + 1);
 	}
 	
 	

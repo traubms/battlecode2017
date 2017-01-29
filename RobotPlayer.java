@@ -52,6 +52,7 @@ public class RobotPlayer {
 				myLogic.donateBulletsToWin();
 				myLogic.incrementalDonate();
 				myLogic.run();
+				myLogic.radio.soundOff();
 			} catch (Exception e) {
                 e.printStackTrace();
             }

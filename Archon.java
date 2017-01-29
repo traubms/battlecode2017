@@ -9,19 +9,22 @@ import java.util.Map;
 
 public class Archon extends AbstractBot {
     
-	private int scoutsMade;
 	private int gardenersMade;
-	private List<MapLocation> enemyArchLocs;
+	private List<MapLocation> enemyTargets;
+	private Map<RobotType, Integer> rollCall;
+	private boolean iAmHead;
+	private int noHeadCount;
+	
 	
 	public Archon(RobotController rc) {
 		super(rc);
-		this.scoutsMade = 0;
 		this.gardenersMade = 0;
-		
-		this.enemyArchLocs = new ArrayList<MapLocation>();
+		this.iAmHead = false;
+		this.noHeadCount = 0;
+		this.enemyTargets = new ArrayList<MapLocation>();
 		MapLocation[] enemyArch = rc.getInitialArchonLocations(team.opponent());
 		for (MapLocation loc: enemyArch)
-			enemyArchLocs.add(loc);
+			enemyTargets.add(loc);
 	}
 
 	/*
@@ -34,61 +37,108 @@ public class Archon extends AbstractBot {
     public void run() throws GameActionException {
 	    trees.update();
     	bots.update();
-
     	orderScoutMode(); //tell all scout units which behavior protocol to run each turn
-		makeBuildOrders(); //build robots
     	dodge();
     	if (bots.getBotCounts(team.opponent()) > 0)
     		avoidEnemies();
     	else
     		moveAvoidingGardeners();
-    	decideSwarmLocation();
+    	updateTargets();
+    	if (iAmHead) {
+        	updateRollCall();
+    		makeBuildOrders(); //build robots
+    		decideSwarmLocation();
+    	} else 
+    		checkIfIAmHead();
+    	followBuildOrders();
+    }
+    
+    public void checkIfIAmHead() throws GameActionException {
+    	boolean noOtherHeadSignal = radio.listen(Channels.ARCHON_COUNT) == 0;
+    	if(noOtherHeadSignal){
+			if (rc.getRoundNum() < 2 || noHeadCount > 3)
+				iAmHead = true;
+			else
+				noHeadCount++;
+		} else {
+			this.noHeadCount = 0;
+		}
+    }
+    
+    public void updateRollCall() throws GameActionException{
+    	rollCall = radio.rollCall();
     }
     
     public void decideSwarmLocation() throws GameActionException {
     	int round = rc.getRoundNum() ;
-    	if (bots.getBotCounts(team.opponent()) > 0) {
-    		radio.setForwardMarch(true);
-    		radio.setSwarmLocation(rc.getLocation());
-    	} else {
-    		if (enemyArchLocs.size() == 0 && round - radio.listen(Channels.ENEMY_DETECTED) % 1000 < 20) {
-    			enemyArchLocs.add(radio.getReportedEnemies());
-    			System.out.println("ENEMY REPORTED");
-    		}
-    		if (round >= 1200 && round % 300 < 125 && enemyArchLocs.size() > 0) {
-	    		radio.setForwardMarch(true);
-	    		MapLocation reached = radio.checkReachSwarmLocation(), target;
-	    		if (reached != null){
-	    			for(MapLocation loc: enemyArchLocs){
-	    				if (loc.distanceTo(reached) < 5){
-	    					enemyArchLocs.remove(loc);
-	    					System.out.println("HEARD YOU LOUD AND CLEAR: " + enemyArchLocs);
-	    					break;
-	    				}
-	    			}
-	    		}
-	    		if (enemyArchLocs.size() > 0 && round % 300 < 100)
-	    			target = enemyArchLocs.get(0);
-	    		else 
+    	
+		// Pick destination
+		boolean march;
+    	MapLocation target = null;
+    	if (bots.getBotCounts(team.opponent()) > 0) { // Defend archon
+    		march = true;
+    		target = rc.getLocation();
+    	} else if (enemyTargets.size() > 0) { // only if target available
+    		// march schedule 
+    		if (round >= 500) 
+	    		march = true;
+    		else
+        		march = false;
+    		
+    		// go out to enemy or come back
+    		if(march){
+	    		if (enemyTargets.size() > 0) //&& round % 300 < 100) 
+	    			target = this.closestEnemyTarget();
+	    		else
 	    			target = rc.getLocation();
-	    		radio.setSwarmLocation(target);
-	    		System.out.println("SWARM: " + target);
-	    	} else
-	    		radio.setForwardMarch(false);
+    		}
+    	} else 
+    		march = false;
+    	
+    	// Send out location
+    	if (march) {
+    		radio.setSwarmLocation(target);
+//    		System.out.println("SWARM: " + target);
     	}
+    	radio.setForwardMarch(march);
     }
-
-
-   	public void orderScoutMode() throws GameActionException { //broadcasts to scout units to dictate their behavior mode depending available bullet trees etc.
-
-		ArrayList<TreeInfo> bulletTrees = trees.getBulletTrees();
-		if (bulletTrees.size() > 0) { //neutral bullet trees still out there
-			radio.broadcast(Channels.SCOUT_MODE, Codes.SCOUTMODE_HARVEST);
-		} else { //no more bullet trees left to harvest
-			radio.broadcast(Channels.SCOUT_MODE, Codes.SCOUTMODE_ATTACK);
+    
+    public void updateTargets() throws GameActionException{
+    	// Check if enemy reported
+    	int round = rc.getRoundNum();
+    	MapLocation enemiesReported;
+    	if (round - radio.listen(Channels.ENEMY_DETECTED) / 100 < 20) {
+    		enemiesReported = radio.getReportedEnemies();
+    		if(enemiesReported != null && !enemyTargets.contains(enemyTargets))	{
+	    		enemyTargets.add(enemiesReported);
+    		}
 		}
-
-	}
+    	
+    	// Check if destination reached
+    	MapLocation reached = radio.checkReachSwarmLocation();
+		if (reached != null){
+			for(MapLocation loc: enemyTargets) {
+				if (loc.distanceTo(reached) < 2) {
+					enemyTargets.remove(loc);
+					System.out.println("HEARD YOU LOUD AND CLEAR: " + enemyTargets.size());
+					break;
+				}
+			}
+		}
+    }
+    
+    public MapLocation closestEnemyTarget(){
+    	float minDist = 1000, dist;
+    	MapLocation closest = null, myLoc = rc.getLocation();
+    	for(MapLocation loc: this.enemyTargets) {
+    		dist = myLoc.distanceTo(loc);
+    		if (dist < minDist){
+    			minDist = dist;
+    			closest = loc;
+    		}
+    	}
+    	return closest;
+    }
     
     public RobotInfo findClosestRobotOfType(RobotType type) {
         for(RobotInfo r : this.bots.getBots(rc.getTeam())) {
@@ -128,7 +178,6 @@ public class Archon extends AbstractBot {
 		int lumbers=0, tree=0, scouts=0, tanks=0, soldiers=0, gardeners=0;
     	//TODO
 		tree = 3;
-		int treeCounts = radio.getTreeCounts();
 
     	scouts = (int) (Math.random() + .03);
 		lumbers = (int) trees.getTreeCounts(Team.NEUTRAL) / 2;
@@ -154,10 +203,14 @@ public class Archon extends AbstractBot {
         orders.put(Codes.LUMBERJACK, lumbers);
         orders.put(Codes.SCOUT, scouts);
     	orders.put(Codes.TREE, tree);
-//    	System.out.println(orders);
+    	orders.put(Codes.GARDENER, gardeners);
+    	radio.makeBuildOrders(orders);
+    }
+    
+    public void followBuildOrders() throws GameActionException{
+    	int gardeners = radio.checkBuildOrders().getOrDefault(Codes.GARDENER, 0);
     	if (gardeners > 0)
     		hireGardener();
-    	radio.makeBuildOrders(orders);
     }
     
 	/** Trys to plant a gardener around an Archon by checking different
@@ -178,6 +231,17 @@ public class Archon extends AbstractBot {
 			count++;
 		}
 		return false;
+	}
+	
+   	public void orderScoutMode() throws GameActionException { //broadcasts to scout units to dictate their behavior mode depending available bullet trees etc.
+
+		ArrayList<TreeInfo> bulletTrees = trees.getBulletTrees();
+		if (bulletTrees.size() > 0) { //neutral bullet trees still out there
+			radio.broadcast(Channels.SCOUT_MODE, Codes.SCOUTMODE_HARVEST);
+		} else { //no more bullet trees left to harvest
+			radio.broadcast(Channels.SCOUT_MODE, Codes.SCOUTMODE_ATTACK);
+		}
+
 	}
 
 }

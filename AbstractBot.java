@@ -60,7 +60,6 @@ public abstract class AbstractBot {
     	MapLocation loc = radio.swarmLocation();
     	if (rc.getLocation().distanceTo(loc) < 5){
     		radio.reachedSwarmLocation(loc);
-    		System.out.println("I'M HERE: " + loc);
     	} if (!potentialMove(loc)) {
     		attackNeutralTrees();
     		return false;

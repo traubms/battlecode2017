@@ -66,8 +66,10 @@ public class Scout extends AbstractBot {
 			heading = BotUtils.randomDirection();
 		if(!avoidEnemies(5))
 			return tryMove(heading);
-		else
+		else {
+			heading = BotUtils.randomDirection();
 			return true;
+		}
 	}
 
     //************************** Scout Behavior Modes **************************//
