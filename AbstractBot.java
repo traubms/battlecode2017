@@ -46,7 +46,7 @@ public abstract class AbstractBot {
 
     /** most fundamental movement funciton we've made*/
     public boolean move(Direction dir) throws GameActionException {
-        if (!rc.hasMoved() && rc.canMove(dir)) {
+        if (!rc.hasMoved() && rc.canMove(dir) && !rc.hasAttacked()) {
             rc.move(dir);
             return true;
         } else return false;
