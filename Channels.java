@@ -11,7 +11,11 @@ public enum Channels {
 	SWARM_X(8),
 	SWARM_Y(9), 
 	REACHED_SWARM_X(10),
-	REACHED_SWARM_Y(11);
+	REACHED_SWARM_Y(11),
+	ENEMY_DETECTED(12),
+	ENEMY_DETECTED_X(13),
+	ENEMY_DETECTED_Y(14),
+	TREE_COUNT(15);
 	
 	private int value;
 	

@@ -392,7 +392,7 @@ public abstract class AbstractBot {
     		if (bot.type == RobotType.ARCHON){
     			gradient = updateGradient(gradient, myLoc, bot.location, 1);	
     			count++;
-    		} else if(bot.type == RobotType.GARDENER && myLoc.distanceTo(bot.location) < 5){
+    		} else if((bot.type == RobotType.GARDENER || bot.type == RobotType.SCOUT) && myLoc.distanceTo(bot.location) < 5){
     			gradient = updateGradient(gradient, myLoc, bot.location, 1);	
     			count++;
     		}
@@ -405,22 +405,28 @@ public abstract class AbstractBot {
 	    }
 	}
 	
-	public boolean avoidEnemies() throws GameActionException{
+	public boolean avoidEnemies(float range) throws GameActionException {
 		int count = 0;
 	    float[] gradient = initializeGradient();
 	    MapLocation myLoc = rc.getLocation();
+	    float dist;
+	    boolean canAttack;
 	    for(RobotInfo bot: bots.getBots(team.opponent())){
-    		if (bot.type == RobotType.SCOUT || bot.type == RobotType.SOLDIER || bot.type == RobotType.TANK || bot.type == RobotType.LUMBERJACK){
+	    	dist = myLoc.distanceTo(bot.location);
+	    	canAttack = bot.type == RobotType.SCOUT || bot.type == RobotType.SOLDIER || bot.type == RobotType.TANK || bot.type == RobotType.LUMBERJACK;
+    		if (dist < range && canAttack){
     			gradient = updateGradient(gradient, myLoc, bot.location, 1);	
     			count++;
     		}
 	    }
 	    if(count > 0)
 	    	return followGradient(gradient);
-	    else {
-	        Direction dir = BotUtils.randomDirection();
-	        return tryMove(dir);
-	    }
+	    else 
+	    	return false;
+	}
+	
+	public boolean avoidEnemies() throws GameActionException {
+		return avoidEnemies(1000);
 	}
 	
 	public boolean potentialMove(MapLocation goal) throws GameActionException{

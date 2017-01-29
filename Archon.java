@@ -48,6 +48,8 @@ public class Archon extends AbstractBot {
     
     public void decideSwarmLocation() throws GameActionException {
     	int round = rc.getRoundNum() ;
+    	if (enemyArchLocs.size() == 0 && round - radio.listen(Channels.ENEMY_DETECTED) % 1000 < 20)
+    		enemyArchLocs.add(radio.getReportedEnemies());
     	if (round >= 1200 && round % 300 < 125 && enemyArchLocs.size() > 0) {
     		radio.setForwardMarch(true);
     		MapLocation reached = radio.checkReachSwarmLocation(), target;
@@ -129,9 +131,8 @@ public class Archon extends AbstractBot {
     	
 			soldiers = (int) (Math.random() + .3) + bots.getBotCounts(team.opponent());
     	
-			if (rc.getTeamBullets() > 300)
-				tanks = 1;
-			
+//			if (rc.getTeamBullets() > 300)
+//				tanks = 1;
 		}
 		gardeners = 0;
 		int gCount = getTypeCount(RobotType.GARDENER, this.team) ;
