@@ -230,8 +230,8 @@ public abstract class AbstractBot {
     boolean trySidestep(BulletInfo bullet) throws GameActionException{
 
         Direction towards = bullet.getDir();
-        MapLocation leftGoal = rc.getLocation().add(towards.rotateLeftDegrees(90), rc.getType().bodyRadius);
-        MapLocation rightGoal = rc.getLocation().add(towards.rotateRightDegrees(90), rc.getType().bodyRadius);
+        //MapLocation leftGoal = rc.getLocation().add(towards.rotateLeftDegrees(90), rc.getType().bodyRadius);
+        //MapLocation rightGoal = rc.getLocation().add(towards.rotateRightDegrees(90), rc.getType().bodyRadius);
 
         return(tryMove(towards.rotateRightDegrees(90)) || tryMove(towards.rotateLeftDegrees(90)));
     }
@@ -313,7 +313,7 @@ public abstract class AbstractBot {
         
         TreeInfo nearestBadTree = trees.getClosestTree(team.opponent());
         TreeInfo nearestNTree = trees.getClosestTree(Team.NEUTRAL);
-        TreeInfo nearestGoodTree = trees.getClosestTree(team);
+        //TreeInfo nearestGoodTree = trees.getClosestTree(team);
         
         // consider neutral tree to be enemy tree
         if (nearestNTree != null) { 
