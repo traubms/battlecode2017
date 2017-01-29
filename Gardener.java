@@ -31,51 +31,10 @@ public class Gardener extends AbstractBot {
 	    bots.update();
 	    trees.update();
 	    waterWeakest();
-
 	    if(!foundHome){
-		    int count = 0;
-		    float minDist = 10000, minArchDist=1000, dist, strength;
-		    float[] gradient = new float[2];
-		    MapLocation myLoc = rc.getLocation();
-		    for(RobotInfo bot: bots.getBots(team)){
-		    	if (bot.type == RobotType.GARDENER || bot.type == RobotType.ARCHON){
-		    		count++;
-		    		dist = myLoc.distanceTo(bot.location);
-		    		if (bot.type == RobotType.GARDENER && dist < minDist)
-		    			minDist = dist;
-		    		if (bot.type == RobotType.ARCHON && dist < minDist)
-		    			minArchDist = dist;
-		    	}
-	    		if (bot.type == RobotType.ARCHON)
-	    			strength = .1f;
-	    		else if (bot.type == RobotType.GARDENER)
-	    			strength = 1;
-	    		else
-	    			strength = .00f;
-	    		gradient = updateGradient(gradient, myLoc, bot.location, strength);	
-		    }
-		    float stopDist = 8.5f;
-		    if (count == 0 || (minDist > stopDist && minArchDist > stopDist * 3 / 4)){
-		    	List<Direction> bd = getBuildDirections();
-		    	if (bd.size() < 3 && bd.size() > 0){
-		    		this.build(bd.get(0), RobotType.LUMBERJACK);
-		    		System.out.println("lumber...");
-		    	}else 
-		    		while(!build(RobotType.SOLDIER)){
-		    			foundHome = true;
-		    		}
-		    } 
-		    if (!foundHome){
-		    	gradient = updateGradient(gradient, myLoc, base, 1f);
-		    	followGradient(gradient);
-		    }
+		    findHome();
 	    }
 	    followBuildCommands();
-	    if(foundHome){	
-	    	if (rc.getTeamBullets() > 300)
-	    		plantTree();
-	    }
-	    
 	}
 
 	/** Checks if tree can be planted in a direction and plants there 
@@ -125,6 +84,46 @@ public class Gardener extends AbstractBot {
     			}
     		}
     	}
+    }
+    
+    public void findHome() throws GameActionException{
+    	int count = 0;
+	    float minDist = 10000, minArchDist=1000, dist, strength;
+	    float[] gradient = new float[2];
+	    MapLocation myLoc = rc.getLocation();
+	    for(RobotInfo bot: bots.getBots(team)){
+	    	if (bot.type == RobotType.GARDENER || bot.type == RobotType.ARCHON){
+	    		count++;
+	    		dist = myLoc.distanceTo(bot.location);
+	    		if (bot.type == RobotType.GARDENER && dist < minDist)
+	    			minDist = dist;
+	    		if (bot.type == RobotType.ARCHON && dist < minDist)
+	    			minArchDist = dist;
+	    	}
+    		if (bot.type == RobotType.ARCHON)
+    			strength = .1f;
+    		else if (bot.type == RobotType.GARDENER)
+    			strength = 1;
+    		else
+    			strength = .00f;
+    		gradient = updateGradient(gradient, myLoc, bot.location, strength);	
+	    }
+	    float stopDist = 8.5f;
+	    if (count == 0 || (minDist > stopDist && minArchDist > stopDist * 3 / 4)){
+	    	List<Direction> bd = getBuildDirections();
+	    	if (bd.size() < 3 && bd.size() > 0){
+	    		this.build(bd.get(0), RobotType.LUMBERJACK);
+	    		System.out.println("lumber...");
+	    	}else 
+	    		foundHome = true;
+//	    		while(!build(RobotType.SOLDIER)){
+//	    			foundHome = true;
+//	    		}
+	    } 
+	    if (!foundHome){
+	    	gradient = updateGradient(gradient, myLoc, base, 1f);
+	    	followGradient(gradient);
+	    }
     }
     
     public boolean build(Codes code) throws GameActionException{

@@ -37,7 +37,6 @@ public class Archon extends AbstractBot {
 
     	orderScoutMode(); //tell all scout units which behavior protocol to run each turn
 		makeBuildOrders(); //build robots
-    	donateBullets2(); //buy victory points
     	dodge();
     	if (bots.getBotCounts(team.opponent()) > 0)
     		avoidEnemies();
@@ -48,28 +47,35 @@ public class Archon extends AbstractBot {
     
     public void decideSwarmLocation() throws GameActionException {
     	int round = rc.getRoundNum() ;
-    	if (enemyArchLocs.size() == 0 && round - radio.listen(Channels.ENEMY_DETECTED) % 1000 < 20)
-    		enemyArchLocs.add(radio.getReportedEnemies());
-    	if (round >= 1200 && round % 300 < 125 && enemyArchLocs.size() > 0) {
+    	if (bots.getBotCounts(team.opponent()) > 0) {
     		radio.setForwardMarch(true);
-    		MapLocation reached = radio.checkReachSwarmLocation(), target;
-    		if (reached != null){
-    			for(MapLocation loc: enemyArchLocs){
-    				if (loc.distanceTo(reached) < 5){
-    					enemyArchLocs.remove(loc);
-    					System.out.println("HEARD YOU LOUD AND CLEAR: " + enemyArchLocs);
-    					break;
-    				}
-    			}
+    		radio.setSwarmLocation(rc.getLocation());
+    	} else {
+    		if (enemyArchLocs.size() == 0 && round - radio.listen(Channels.ENEMY_DETECTED) % 1000 < 20) {
+    			enemyArchLocs.add(radio.getReportedEnemies());
+    			System.out.println("ENEMY REPORTED");
     		}
-    		if (enemyArchLocs.size() > 0 && round % 300 < 100)
-    			target = enemyArchLocs.get(0);
-    		else 
-    			target = rc.getLocation();
-    		radio.setSwarmLocation(target);
-//    		System.out.println("SWARM: " + target);
-    	} else
-    		radio.setForwardMarch(false);
+    		if (round >= 1200 && round % 300 < 125 && enemyArchLocs.size() > 0) {
+	    		radio.setForwardMarch(true);
+	    		MapLocation reached = radio.checkReachSwarmLocation(), target;
+	    		if (reached != null){
+	    			for(MapLocation loc: enemyArchLocs){
+	    				if (loc.distanceTo(reached) < 5){
+	    					enemyArchLocs.remove(loc);
+	    					System.out.println("HEARD YOU LOUD AND CLEAR: " + enemyArchLocs);
+	    					break;
+	    				}
+	    			}
+	    		}
+	    		if (enemyArchLocs.size() > 0 && round % 300 < 100)
+	    			target = enemyArchLocs.get(0);
+	    		else 
+	    			target = rc.getLocation();
+	    		radio.setSwarmLocation(target);
+	    		System.out.println("SWARM: " + target);
+	    	} else
+	    		radio.setForwardMarch(false);
+    	}
     }
 
 
@@ -123,29 +129,23 @@ public class Archon extends AbstractBot {
     	//TODO
 		tree = 3;
 		int treeCounts = radio.getTreeCounts();
-		if(treeCounts > 2){
-			//Scout
-	    	scouts = (int) (Math.random() + .03);
-	    	
-			//LumberJacks
-			lumbers = (int) trees.getTreeCounts(Team.NEUTRAL) / 2;
-    	
-			soldiers = (int) (Math.random() + .3) + bots.getBotCounts(team.opponent());
-    	
-//			if (rc.getTeamBullets() > 300)
-//				tanks = 1;
-		} 
+
+    	scouts = (int) (Math.random() + .03);
+		lumbers = (int) trees.getTreeCounts(Team.NEUTRAL) / 2;
+		soldiers = (int) (Math.random() + .3) + bots.getBotCounts(team.opponent());
+			
 		gardeners = 0;
-		int gCount = getTypeCount(RobotType.GARDENER, this.team) ;
-		if(gardenersMade > 0 && rc.getTeamBullets() > 150){
-	    	if(gCount < 2 || Math.random() < .1)
-	            gardeners = 1; 
-	    	if(getTypeCount(RobotType.GARDENER, this.team) >= 4 || gardenersMade >= 5)
-	    		gardeners = 0;
-	    	if(Math.random() < .05)
-	    		gardeners = 1;
-		} else if(gardenersMade  == 0){
+		if(gardenersMade == 0)
 			gardeners = 1;
+		else if(gardenersMade == 1){
+			if(Math.random() < .40)
+	            gardeners = 1; 
+		} else if(gardenersMade <= 4){
+			if(Math.random() < .10)
+	            gardeners = 1; 
+		} else {
+			if(Math.random() < .04)
+	            gardeners = 1; 
 		}
 
     	Map<Codes, Integer> orders = new HashMap<Codes, Integer>();

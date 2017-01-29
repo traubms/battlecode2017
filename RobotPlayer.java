@@ -49,6 +49,8 @@ public class RobotPlayer {
 		{
 			round = rc.getRoundNum();
 			try{
+				myLogic.donateBulletsToWin();
+				myLogic.incrementalDonate();
 				myLogic.run();
 			} catch (Exception e) {
                 e.printStackTrace();

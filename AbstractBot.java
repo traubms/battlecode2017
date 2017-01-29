@@ -279,13 +279,8 @@ public abstract class AbstractBot {
         	target = null;
         }
         
-        //shoot
-        Direction shootDir = null;
-        if (target != null)
-        	shootDir = fireShot(target);
-
         //means no shot taken, defend, else move not directly in path of bullets
-        if(shootDir == null) { 
+        if(target == null) { 
         	RobotInfo inDanger = bots.getWeakestbot(team);
             if (inDanger!=null) 
             	tryMove(rc.getLocation().directionTo(inDanger.location));
@@ -294,6 +289,7 @@ public abstract class AbstractBot {
         	Direction directionToTarget = rc.getLocation().directionTo(target.getLocation());
             if (!tryMove(directionToTarget.rotateLeftDegrees(40), 10, 2))
             	tryMove(directionToTarget.rotateRightDegrees(40), 10, 2);
+            fireShot(target); // SHOOT
             return true;
         }
     }
@@ -442,13 +438,22 @@ public abstract class AbstractBot {
 	}
     
 
-    public void donateBullets2() throws GameActionException {
+    public void donateBulletsToWin() throws GameActionException {
         float round = rc.getRoundNum();
         float numBullets = rc.getTeamBullets();
         float conversion = (7.5f) + ((round * 12.5f) / 3000f);
-
-        if (numBullets / conversion > 1000) {
+        if (numBullets / conversion > 1000 - rc.getTeamVictoryPoints()) {
             rc.donate(numBullets);
+        }
+    }
+    
+    public void incrementalDonate() throws GameActionException {
+        float round = rc.getRoundNum();
+        float numBullets = rc.getTeamBullets();
+        float conversion =  (7.5f) + ((round * 12.5f) / 3000f);
+        float bulletsNeededFor50VP = 50 * conversion + 1;
+        if (numBullets > 1.5 * bulletsNeededFor50VP) {
+            rc.donate(bulletsNeededFor50VP);
         }
     }
 
