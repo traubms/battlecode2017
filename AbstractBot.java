@@ -2,6 +2,7 @@ package battlecode2017;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import battlecode.common.BodyInfo;
 import battlecode.common.BulletInfo;
@@ -39,22 +40,7 @@ public abstract class AbstractBot {
 	
 	public abstract void run() throws GameActionException;
 	
-    /** Move in random direction*/
-    public boolean wander() throws GameActionException {
-    	return moveAvoidingGardeners();
-    }
-
-    /** most fundamental movement funciton we've made*/
-    public boolean move(Direction dir) throws GameActionException {
-        if (!rc.hasMoved() && rc.canMove(dir) && !rc.hasAttacked()) {
-            rc.move(dir);
-            return true;
-        } else return false;
-    }
-
-    public boolean tryMove(Direction dir) throws GameActionException {
-        return tryMove(dir,20,7);
-    }
+	
     
     public boolean followMarchingOrders() throws GameActionException{
     	MapLocation loc = radio.swarmLocation();
@@ -67,15 +53,12 @@ public abstract class AbstractBot {
     		return true;
     }
     
-    public boolean attackNeutralTrees() throws GameActionException{
-    	List<TreeInfo> neutralTrees = trees.getTreesWithinInteract(Team.NEUTRAL);
-		if (neutralTrees.size() > 0) {
-			return fireShot(neutralTrees.get(0)) != null;
-		} else 
-			return false;
+    /** Move in random direction*/
+    public boolean wander() throws GameActionException {
+    	return moveAvoidingGardeners();
     }
     
-
+ 
     /**basic function for moving to a map location*/
     public boolean moveTo(MapLocation dest) throws GameActionException {
         float distTo = rc.getLocation().distanceTo(dest);
@@ -92,13 +75,6 @@ public abstract class AbstractBot {
                 }
             }
     }
-
-    public void donateBullets3() throws GameActionException {
-        if (rc.getTeamBullets() > 1000) {
-            rc.donate(rc.getTeamBullets());
-        }
-    }
-    
 
     /**
      * Attempts to move in a given direction, while avoiding small obstacles direction in the path.
@@ -130,6 +106,19 @@ public abstract class AbstractBot {
         return false;
     }
     
+    public boolean tryMove(Direction dir) throws GameActionException {
+        return tryMove(dir,20,7);
+    }
+      
+    /** most fundamental movement funciton we've made*/
+    public boolean move(Direction dir) throws GameActionException {
+        if (!rc.hasMoved() && rc.canMove(dir) && !rc.hasAttacked()) {
+            rc.move(dir);
+            return true;
+        } else return false;
+    }
+
+    
     public void moveTowardsEnemiesOrTrees() throws GameActionException{
 		MapLocation goal = null;
 		if (bots.getBotCounts(team.opponent()) > 0){ // move to opponent
@@ -159,74 +148,6 @@ public abstract class AbstractBot {
     	moveTowardsOrWander(goal, this.EPSILON);
     }
     
-    
-    public MapLocation nearestEnemyBotOrTree(){
-    	if (bots.getBotCounts(team.opponent()) > 0){ // move to opponent
-			return bots.getClosestbot(team.opponent()).location;
-		} else if (trees.getTreeCounts(team.opponent()) > 0){ // move to enemy tree
-			return trees.getClosestTree(team.opponent()).location;
-		} else {
-			return null;
-		} 
-    }
-
-    public TreeInfo nearestEnemyTreeOrNeutralTree() {
-        TreeInfo nearestTree = null;
-        if (trees.getTreeCounts(Team.NEUTRAL) > 0) {
-            nearestTree = trees.getClosestTree(Team.NEUTRAL);
-        }
-        if (trees.getTreeCounts(team.opponent()) > 0) {
-            TreeInfo nearestBTree = trees.getClosestTree(team.opponent());
-            if (nearestTree == null || rc.getLocation().distanceTo(nearestBTree.getLocation()) < rc.getLocation().distanceTo(nearestTree.getLocation())) {
-                nearestTree = nearestBTree;
-            }
-        }
-        if (nearestTree!=null) return nearestTree;
-        else return null;
-
-    }
-    
-    public MapLocation nearestEnemyBotOrTreeOrNeutralTree(){
-    	MapLocation enemy = nearestEnemyBotOrTree();
-    	if (enemy == null){
-    		if(trees.getTreeCounts(Team.NEUTRAL) > 0)
-    			return trees.getClosestTree(Team.NEUTRAL).location;
-    	} 
-    	return null; // no enemy or neutral tree
-    }
-    
-    public MapLocation nearestEnemyBotOrTreeOrBulletTree(){
-    	MapLocation enemy = nearestEnemyBotOrTree();
-    	if (enemy == null){
-    		ArrayList<TreeInfo> bulletTrees = trees.getBulletTrees();
-    		if(bulletTrees.size() > 0)
-    			return bulletTrees.get(0).location;
-    	} 
-    	return null; // no enemy or bullet tree
-    }
-    	
-    public boolean willCollideWithMe(BulletInfo bullet) {
-        MapLocation myLocation = rc.getLocation();
-
-        // Get relevant bullet information
-        Direction propagationDirection = bullet.dir;
-        MapLocation bulletLocation = bullet.location;
-
-        // Calculate bullet relations to this robot
-        Direction directionToRobot = bulletLocation.directionTo(myLocation);
-        float distToRobot = bulletLocation.distanceTo(myLocation);
-        float theta = propagationDirection.radiansBetween(directionToRobot);
-
-        // If theta > 90 degrees, then the bullet is traveling away from us and we can break early
-        if (Math.abs(theta) > Math.PI / 2) {
-            return false;
-        }
-        
-        float perpendicularDist = (float) Math.abs(distToRobot * Math.sin(theta));
-
-        return (perpendicularDist <= rc.getType().bodyRadius);
-    }
-    
     boolean trySidestep(BulletInfo bullet) throws GameActionException{
 
         Direction towards = bullet.getDir();
@@ -235,27 +156,6 @@ public abstract class AbstractBot {
 
         return(tryMove(towards.rotateRightDegrees(90)) || tryMove(towards.rotateLeftDegrees(90)));
     }
-
-    public void dodge() throws GameActionException {
-        BulletInfo[] bullets = rc.senseNearbyBullets();
-        for (BulletInfo bi : bullets) {
-            if (willCollideWithMe(bi)) {
-                trySidestep(bi);
-            }
-        }
-    }
-    
-    public boolean shake() throws GameActionException {
-    	ArrayList<TreeInfo> bullets = trees.getBulletTrees();
-    	if (bullets.size() > 0 && rc.canShake(bullets.get(0).ID)){
-    		rc.shake(bullets.get(0).ID);
-    		return true;
-    	} else {
-    		return false;
-    	}
-    }
-
-
 
     /**
      * Attacks by shooting either a single, triad, or pentad shot.
@@ -357,18 +257,20 @@ public abstract class AbstractBot {
         	return null;
     }
     
+    public boolean attackNeutralTrees() throws GameActionException{
+    	List<TreeInfo> neutralTrees = trees.getTreesWithinInteract(Team.NEUTRAL);
+		if (neutralTrees.size() > 0) {
+			return fireShot(neutralTrees.get(0)) != null;
+		} else 
+			return false;
+    }
+    
+    
     public float[] initializeGradient(){
     	return new float[2];
     }
     
-    public float[] updateGradient(float[] gradient, MapLocation myLoc, MapLocation loc, float strength){
-		float dist = myLoc.distanceTo(loc);
-		gradient[0] += strength * (myLoc.x - loc.x) / (dist*dist*dist);
-		gradient[1] += strength * (myLoc.y - loc.y) / (dist*dist*dist);
-		return gradient;
-	}
-	
-	public boolean followGradient(float[] gradient) throws GameActionException{
+    public boolean followGradient(float[] gradient) throws GameActionException{
 		Direction moveDir = new Direction((float) Math.atan2(gradient[1], gradient[0]));
 		if(!tryMove(moveDir)){
 			if(!tryMove(moveDir.rotateLeftDegrees(90))){
@@ -378,6 +280,39 @@ public abstract class AbstractBot {
 		}
 		return true;
 	}
+	
+    public float[] updateGradient(float[] gradient, MapLocation myLoc, MapLocation loc, float strength){
+		float dist = myLoc.distanceTo(loc);
+		gradient[0] += strength * (myLoc.x - loc.x) / (dist*dist*dist);
+		gradient[1] += strength * (myLoc.y - loc.y) / (dist*dist*dist);
+		return gradient;
+	}
+	
+    public float[] updateGradient(float[] gradient, List<RobotInfo> bots, Map<RobotType, Float> stengths, float range){
+    	MapLocation myLoc = rc.getLocation();
+    	for(RobotInfo bot: bots){
+    		if (stengths.containsKey(bot.type))
+    			gradient = updateGradient(gradient, myLoc, bot.location, stengths.get(bot.type));	
+	    }
+    	return gradient;
+    }
+    
+	
+	public boolean moveAvoiding(Map<RobotType, Float> myTeamStrengths, float myTeamRange, Map<RobotType, Float> otherTeamStrengths, float otherTeamRange) throws GameActionException {
+	    float[] gradient = initializeGradient();
+	    
+	    gradient = updateGradient(gradient, bots.getBots(team), myTeamStrengths, myTeamRange);
+	    gradient = updateGradient(gradient, bots.getBots(team.opponent()), otherTeamStrengths, otherTeamRange);
+	    if(gradient[0] == 0 && gradient[1] == 0)
+	    	return followGradient(gradient);
+	    else {
+	        Direction dir = BotUtils.randomDirection();
+	        return tryMove(dir);
+	    }
+	}
+	
+	
+	
 	
 	public boolean moveAvoidingGardeners() throws GameActionException{
 		int count = 0;
@@ -435,8 +370,26 @@ public abstract class AbstractBot {
 	    }
 	    return followGradient(gradient);
 	}
+	
+	public void dodge() throws GameActionException {
+        BulletInfo[] bullets = rc.senseNearbyBullets();
+        for (BulletInfo bi : bullets) {
+            if (willCollideWithMe(bi)) {
+                trySidestep(bi);
+            }
+        }
+    }
     
-
+    public boolean shake() throws GameActionException {
+    	ArrayList<TreeInfo> bullets = trees.getBulletTrees();
+    	if (bullets.size() > 0 && rc.canShake(bullets.get(0).ID)){
+    		rc.shake(bullets.get(0).ID);
+    		return true;
+    	} else {
+    		return false;
+    	}
+    }
+    
     public void donateBulletsToWin() throws GameActionException {
         float round = rc.getRoundNum();
         float numBullets = rc.getTeamBullets();
@@ -455,6 +408,73 @@ public abstract class AbstractBot {
             rc.donate(bulletsNeededFor50VP);
         }
     }
+    
+    public MapLocation nearestEnemyBotOrTree(){
+    	if (bots.getBotCounts(team.opponent()) > 0){ // move to opponent
+			return bots.getClosestbot(team.opponent()).location;
+		} else if (trees.getTreeCounts(team.opponent()) > 0){ // move to enemy tree
+			return trees.getClosestTree(team.opponent()).location;
+		} else {
+			return null;
+		} 
+    }
+
+    public TreeInfo nearestEnemyTreeOrNeutralTree() {
+        TreeInfo nearestTree = null;
+        if (trees.getTreeCounts(Team.NEUTRAL) > 0) {
+            nearestTree = trees.getClosestTree(Team.NEUTRAL);
+        }
+        if (trees.getTreeCounts(team.opponent()) > 0) {
+            TreeInfo nearestBTree = trees.getClosestTree(team.opponent());
+            if (nearestTree == null || rc.getLocation().distanceTo(nearestBTree.getLocation()) < rc.getLocation().distanceTo(nearestTree.getLocation())) {
+                nearestTree = nearestBTree;
+            }
+        }
+        if (nearestTree!=null) return nearestTree;
+        else return null;
+
+    }
+    
+    public MapLocation nearestEnemyBotOrTreeOrNeutralTree(){
+    	MapLocation enemy = nearestEnemyBotOrTree();
+    	if (enemy == null){
+    		if(trees.getTreeCounts(Team.NEUTRAL) > 0)
+    			return trees.getClosestTree(Team.NEUTRAL).location;
+    	} 
+    	return null; // no enemy or neutral tree
+    }
+    
+    public MapLocation nearestEnemyBotOrTreeOrBulletTree(){
+    	MapLocation enemy = nearestEnemyBotOrTree();
+    	if (enemy == null){
+    		ArrayList<TreeInfo> bulletTrees = trees.getBulletTrees();
+    		if(bulletTrees.size() > 0)
+    			return bulletTrees.get(0).location;
+    	} 
+    	return null; // no enemy or bullet tree
+    }
+    	
+    public boolean willCollideWithMe(BulletInfo bullet) {
+        MapLocation myLocation = rc.getLocation();
+
+        // Get relevant bullet information
+        Direction propagationDirection = bullet.dir;
+        MapLocation bulletLocation = bullet.location;
+
+        // Calculate bullet relations to this robot
+        Direction directionToRobot = bulletLocation.directionTo(myLocation);
+        float distToRobot = bulletLocation.distanceTo(myLocation);
+        float theta = propagationDirection.radiansBetween(directionToRobot);
+
+        // If theta > 90 degrees, then the bullet is traveling away from us and we can break early
+        if (Math.abs(theta) > Math.PI / 2) {
+            return false;
+        }
+        
+        float perpendicularDist = (float) Math.abs(distToRobot * Math.sin(theta));
+
+        return (perpendicularDist <= rc.getType().bodyRadius);
+    }
 
     /**
      * Returns the initial direction to the enemy archons
@@ -467,11 +487,5 @@ public abstract class AbstractBot {
         Direction directionToEnemyArchon = mapLocation.directionTo(locationsOfEnemyArchons[0]);
         return directionToEnemyArchon;
     }
-
-    public void moveToArchon() throws GameActionException {
-        Direction directionToArchon = directionToEnemyArchon(rc.getLocation());
-        if (rc.canMove(directionToArchon))
-                rc.move(directionToArchon);
-    }
-
+    
 }
