@@ -9,7 +9,6 @@ import java.util.Map;
 
 public class Archon extends AbstractBot {
     
-	private int gardenersMade;
 	private List<MapLocation> enemyTargets;
 	private Map<RobotType, Integer> rollCall;
 	private boolean iAmHead;
@@ -18,7 +17,6 @@ public class Archon extends AbstractBot {
 	
 	public Archon(RobotController rc) {
 		super(rc);
-		this.gardenersMade = 0;
 		this.iAmHead = false;
 		this.noHeadCount = 0;
 		this.enemyTargets = new ArrayList<MapLocation>();
@@ -175,35 +173,40 @@ public class Archon extends AbstractBot {
      * make soldier first but also doesn't make more gardeners than we need
      */
     public void makeBuildOrders() throws GameActionException{
-		int lumbers=0, tree=0, scouts=0, tanks=0, soldiers=0, gardeners=0;
-    	//TODO
-		tree = 3;
+		int lumberOrder=0, treeOrder=0, scoutOrder=0, tankOrder=0, soldierOrder=0, gardenerOrder=0;
+		int gardeners = rollCall.get(RobotType.GARDENER);
+		int soldiers = rollCall.get(RobotType.SOLDIER);
+    	
+		//TODO
+		treeOrder = 3;
 
-    	scouts = (int) (Math.random() + .03);
-		lumbers = (int) trees.getTreeCounts(Team.NEUTRAL) / 2;
-		soldiers = (int) (Math.random() + .3) + bots.getBotCounts(team.opponent());
+    	scoutOrder = (int) (Math.random() + .03);
+		lumberOrder = (int) trees.getTreeCounts(Team.NEUTRAL) / 2;
+		soldierOrder = (int) (Math.random() + .3) + bots.getBotCounts(team.opponent());
 			
-		gardeners = 0;
-		if(gardenersMade == 0)
-			gardeners = 1;
-		else if(gardenersMade == 1){
+		gardenerOrder = 0;
+		if(gardeners == 0)
+			gardenerOrder = 1;
+		else if (gardeners == 1 && soldiers == 0)
+			gardenerOrder = 0;
+		else if(gardeners == 1){
 			if(Math.random() < .40)
-	            gardeners = 1; 
-		} else if(gardenersMade <= 4){
+	            gardenerOrder = 1; 
+		} else if(gardeners <= 4){
 			if(Math.random() < .10)
-	            gardeners = 1; 
+	            gardenerOrder = 1; 
 		} else {
 			if(Math.random() < .04)
-	            gardeners = 1; 
+	            gardenerOrder = 1; 
 		}
 
     	Map<Codes, Integer> orders = new HashMap<Codes, Integer>();
-        orders.put(Codes.SOLIDER, soldiers);
-        orders.put(Codes.TANK, tanks);
-        orders.put(Codes.LUMBERJACK, lumbers);
-        orders.put(Codes.SCOUT, scouts);
-    	orders.put(Codes.TREE, tree);
-    	orders.put(Codes.GARDENER, gardeners);
+        orders.put(Codes.SOLIDER, soldierOrder);
+        orders.put(Codes.TANK, tankOrder);
+        orders.put(Codes.LUMBERJACK, lumberOrder);
+        orders.put(Codes.SCOUT, scoutOrder);
+    	orders.put(Codes.TREE, treeOrder);
+    	orders.put(Codes.GARDENER, gardenerOrder);
     	radio.makeBuildOrders(orders);
     }
     
@@ -224,7 +227,6 @@ public class Archon extends AbstractBot {
 		while (count < numTries) {
 			if (rc.canHireGardener(dir)) {
 				rc.hireGardener(dir);
-				this.gardenersMade++;
 				return true;
 			}
 			dir = dir.rotateLeftDegrees(360 / numTries);
