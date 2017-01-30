@@ -277,8 +277,9 @@ public abstract class AbstractBot {
     }
     
     public boolean attackNeutralTrees() throws GameActionException{
+//    	return false;
     	List<TreeInfo> neutralTrees = trees.getTreesWithinInteract(Team.NEUTRAL);
-		if (neutralTrees.size() > 0) {
+		if (neutralTrees.size() > 0 && rc.getTeamBullets() > 100) {
 			return fireShot(neutralTrees.get(0)) != null;
 		} else 
 			return false;

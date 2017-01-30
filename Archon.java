@@ -98,10 +98,13 @@ public class Archon extends AbstractBot {
 	            gardenerOrder = 1; 
     		
     		// soldiers make if enemies detected 
-    		soldierOrder = (int) (Math.random() + .3) + bots.getBotCounts(team.opponent());
+    		soldierOrder = bots.getBotCounts(team.opponent());
     		scoutOrder = (int) (Math.random() + .03);
-    		if (soldierOrder == 0)
+    		if (soldierOrder == 0) // if being attacked, don't make lumber
     			lumberOrder = (int) trees.getTreeCounts(Team.NEUTRAL) / 2;
+    		if (soldiers < gardeners) 
+    			soldierOrder = Math.max(gardeners - soldiers, soldierOrder);
+    		soldierOrder += (int) (Math.random() + .3);
     	}
 
     	Map<Codes, Integer> orders = new HashMap<Codes, Integer>();
@@ -159,6 +162,11 @@ public class Archon extends AbstractBot {
     		}
 		}
     	
+    	// keep most recent 20
+    	if (enemyTargets.size() > 20)
+    		enemyTargets = enemyTargets.subList(enemyTargets.size() - 20, enemyTargets.size());
+    	
+    	
     	// Check if destination reached
     	MapLocation reached = radio.checkReachSwarmLocation();
 		if (reached != null){
@@ -203,9 +211,12 @@ public class Archon extends AbstractBot {
     
     public void followBuildOrders() throws GameActionException{
     	int gardeners = radio.checkBuildOrders().getOrDefault(Codes.GARDENER, 0);
-    	if (gardeners > 0)
-    		hireGardener();
+    	if (gardeners > 0){
+    		if (hireGardener())
+    			radio.reportBuild(Codes.GARDENER);
+    	}
     }
+    	
     
 	/** Trys to plant a gardener around an Archon by checking different
 	 * possible planting locations around it. Only plants every 50 turns

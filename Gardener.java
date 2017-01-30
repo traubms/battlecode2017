@@ -10,11 +10,12 @@ import java.util.Map;
 public class Gardener extends AbstractBot {
 	
 	MapLocation base;
+	Direction preferedDirection;
 	Direction dirToBase;
 	boolean foundHome;
 	Map<Direction, Boolean> canBuild;
 	
-	public Gardener(RobotController rc) {
+	public Gardener(RobotController rc) throws GameActionException {
 		super(rc);
 		bots.update();
 		for(RobotInfo bot : bots.getBots(team)){
@@ -24,6 +25,7 @@ public class Gardener extends AbstractBot {
 				break;
 			}
 		}
+		this.preferedDirection = BotUtils.randomDirection();
 		this.foundHome = false;
 	}
 
@@ -32,6 +34,7 @@ public class Gardener extends AbstractBot {
 	    trees.update();
 	    waterWeakest();
 	    if(!foundHome){
+	    	this.preferedDirection = BotUtils.randomDirection();
 		    findHome();
 	    }
 	    followBuildCommands();
@@ -51,7 +54,7 @@ public class Gardener extends AbstractBot {
     public List<Direction> getBuildDirections() throws GameActionException{
     	MapLocation center = rc.getLocation(), loc;
     	List<Direction> result = new ArrayList<Direction>();
-    	Direction dir = this.dirToBase.opposite();
+    	Direction dir = this.preferedDirection;
     	for (int i = 0; i < 6; i++) {
     		loc = center.add(dir, 2.1f);
 			if (rc.onTheMap(loc, 1) && !rc.isCircleOccupied(loc, 1))
