@@ -151,8 +151,8 @@ public abstract class AbstractBot {
     boolean trySidestep(BulletInfo bullet) throws GameActionException{
 
         Direction towards = bullet.getDir();
-        MapLocation leftGoal = rc.getLocation().add(towards.rotateLeftDegrees(90), rc.getType().bodyRadius);
-        MapLocation rightGoal = rc.getLocation().add(towards.rotateRightDegrees(90), rc.getType().bodyRadius);
+        //MapLocation leftGoal = rc.getLocation().add(towards.rotateLeftDegrees(90), rc.getType().bodyRadius);
+        //MapLocation rightGoal = rc.getLocation().add(towards.rotateRightDegrees(90), rc.getType().bodyRadius);
 
         return(tryMove(towards.rotateRightDegrees(90)) || tryMove(towards.rotateLeftDegrees(90)));
     }
@@ -186,8 +186,7 @@ public abstract class AbstractBot {
             return false;
         } else {
         	Direction directionToTarget = rc.getLocation().directionTo(target.getLocation());
-            if (!tryMove(directionToTarget.rotateLeftDegrees(40), 10, 2))
-            	tryMove(directionToTarget.rotateRightDegrees(40), 10, 2);
+            if (tryMove(directionToTarget));
             fireShot(target); // SHOOT
             return true;
         }
@@ -203,7 +202,7 @@ public abstract class AbstractBot {
         //tweak the hardcoded numbers as appropriate
         float pentadRange = (float) 1 + rc.getType().bodyRadius;
         float triadRange = (float) 1.574 + rc.getType().bodyRadius;
-        float singleRange = (float) 2.1 + rc.getType().bodyRadius;
+        float singleRange = (float) 6 + rc.getType().bodyRadius;
         if (target.isRobot()){
 	        if (((RobotInfo)target).getType().equals(RobotType.ARCHON) || ((RobotInfo)target).getType().equals(RobotType.TANK)) {
 	            pentadRange = pentadRange + (float) 1;
@@ -214,7 +213,7 @@ public abstract class AbstractBot {
         
         TreeInfo nearestBadTree = trees.getClosestTree(team.opponent());
         TreeInfo nearestNTree = trees.getClosestTree(Team.NEUTRAL);
-        TreeInfo nearestGoodTree = trees.getClosestTree(team);
+        //TreeInfo nearestGoodTree = trees.getClosestTree(team);
         
         // consider neutral tree to be enemy tree
         if (nearestNTree != null) { 
@@ -235,13 +234,33 @@ public abstract class AbstractBot {
         if (target.isTree())
         	dontWorryAboutTrees = true;
         else if (nearestBadTree== null)
-        	dontWorryAboutTrees = true;
+        	dontWorryAboutTrees = false;
         else 
         	dontWorryAboutTrees = myLocation.distanceTo(nearestBadTree.location) < (float) 1.5 && directionDifference < (float) 50;
         
         boolean single = rc.canFireSingleShot();
         boolean triad = rc.canFireTriadShot();
         boolean pentad = rc.canFirePentadShot();
+
+        //hopefully further prevent friendly fire
+        List<RobotInfo> FBots = bots.getBots(team);
+        int count = 0;
+        float distanceToFriendly;
+        float degreesBetweenFriendly;
+        for (RobotInfo fb : FBots) {
+            count++;
+            distanceToFriendly = myLocation.distanceTo(fb.location);
+            degreesBetweenFriendly = directionToShoot.degreesBetween(myLocation.directionTo(fb.location));
+            if (distanceToFriendly < distToEnemy && degreesBetweenFriendly < 50) {
+                single = false;
+                triad = false;
+                pentad = false;
+                break;
+            }
+            if (count >= 6) break;
+        }
+
+
         if (single || triad || pentad){
 	        if (pentad && (distToEnemy < pentadRange || dontWorryAboutTrees)) {// pentad close enough
 	            rc.firePentadShot(directionToShoot);

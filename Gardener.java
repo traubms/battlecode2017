@@ -116,9 +116,9 @@ public class Gardener extends AbstractBot {
 	    		System.out.println("lumber...");
 	    	}else 
 	    		foundHome = true;
-//	    		while(!build(RobotType.SOLDIER)){
-//	    			foundHome = true;
-//	    		}
+	    		while(!build(RobotType.SOLDIER)){
+	    			foundHome = true;
+	    		}
 	    } 
 	    if (!foundHome){
 	    	gradient = updateGradient(gradient, myLoc, base, 1f);
