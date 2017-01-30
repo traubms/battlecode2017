@@ -191,9 +191,5 @@ public class Radio {
 		float message = listen(chan);
 		this.broadcast(chan, message + 1);
 	}
-	
-	
-	
-	
 
 }

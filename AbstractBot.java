@@ -307,32 +307,6 @@ public abstract class AbstractBot {
 		return gradient;
 	}
 	
-    public float[] updateGradient(float[] gradient, List<RobotInfo> bots, Map<RobotType, Float> stengths, float range){
-    	MapLocation myLoc = rc.getLocation();
-    	for(RobotInfo bot: bots){
-    		if (stengths.containsKey(bot.type))
-    			gradient = updateGradient(gradient, myLoc, bot.location, stengths.get(bot.type));	
-	    }
-    	return gradient;
-    }
-    
-	
-	public boolean moveAvoiding(Map<RobotType, Float> myTeamStrengths, float myTeamRange, Map<RobotType, Float> otherTeamStrengths, float otherTeamRange) throws GameActionException {
-	    float[] gradient = initializeGradient();
-	    
-	    gradient = updateGradient(gradient, bots.getBots(team), myTeamStrengths, myTeamRange);
-	    gradient = updateGradient(gradient, bots.getBots(team.opponent()), otherTeamStrengths, otherTeamRange);
-	    if(gradient[0] == 0 && gradient[1] == 0)
-	    	return followGradient(gradient);
-	    else {
-	        Direction dir = BotUtils.randomDirection();
-	        return tryMove(dir);
-	    }
-	}
-	
-	
-	
-	
 	public boolean moveAvoidingGardeners() throws GameActionException{
 		int count = 0;
 	    float[] gradient = initializeGradient();
@@ -362,8 +336,8 @@ public abstract class AbstractBot {
 	    boolean canAttack;
 	    for(RobotInfo bot: bots.getBots(team.opponent())){
 	    	dist = myLoc.distanceTo(bot.location);
-	    	canAttack = bot.type == RobotType.SCOUT || bot.type == RobotType.SOLDIER || bot.type == RobotType.TANK || bot.type == RobotType.LUMBERJACK;
-    		if (dist < range && canAttack){
+//	    	canAttack = bot.type == RobotType.SCOUT || bot.type == RobotType.SOLDIER || bot.type == RobotType.TANK || bot.type == RobotType.LUMBERJACK;
+    		if (dist < range){
     			gradient = updateGradient(gradient, myLoc, bot.location, 1);	
     			count++;
     		}
