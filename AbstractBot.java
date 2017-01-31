@@ -212,7 +212,7 @@ public abstract class AbstractBot {
         float singleRange = (float) 5 + rc.getType().bodyRadius;
 
         //if swarming the enemy, just go ahead and blast away.
-        if (true)  { //TODO: restore inEnemyTerritory
+        if (true)  { //messy change
             pentadRange = pentadRange + 5;
             triadRange = triadRange + 4;
             singleRange = singleRange + 3;
@@ -251,12 +251,12 @@ public abstract class AbstractBot {
         else if (nearestBadTree== null)
         	dontWorryAboutTrees = false;
         else 
-        	dontWorryAboutTrees = myLocation.distanceTo(nearestBadTree.location) < (float) 2.5 && directionDifference < (float) 50;
+        	dontWorryAboutTrees = myLocation.distanceTo(nearestBadTree.location) < (float) 2.5 && directionDifference*directionDifference < (float) 50*50;
         
         boolean single = rc.canFireSingleShot();
         boolean triad = rc.canFireTriadShot();
         boolean pentad = rc.canFirePentadShot();
-        /*
+
         //hopefully further prevent friendly fire
         List<RobotInfo> FBots = bots.getBots(team);
         int count = 0;
@@ -266,7 +266,7 @@ public abstract class AbstractBot {
             count++;
             distanceToFriendly = myLocation.distanceTo(fb.location);
             degreesBetweenFriendly = directionToShoot.degreesBetween(myLocation.directionTo(fb.location));
-            if (distanceToFriendly < distToEnemy && degreesBetweenFriendly < 40) {
+            if (distanceToFriendly < distToEnemy && degreesBetweenFriendly*degreesBetweenFriendly < 50*50) {
                 single = false;
                 triad = false;
                 pentad = false;
@@ -274,7 +274,7 @@ public abstract class AbstractBot {
             }
             if (count >= 6) break;
         }
-        */
+
 
 
         if (single || triad || pentad){
