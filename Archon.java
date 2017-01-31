@@ -77,6 +77,8 @@ public class Archon extends AbstractBot {
 		treeOrder = 3;
 		
 		System.out.println(rollCall);
+		
+		
     	
 		soldierOrder = (int) (Math.random() + .3) + bots.getBotCounts(team.opponent());
 		gardenerOrder = 0;
@@ -110,6 +112,12 @@ public class Archon extends AbstractBot {
     		if (soldiers < gardeners) 
     			soldierOrder = Math.max(gardeners - soldiers, soldierOrder);
     		soldierOrder += (int) (Math.random() + .3);
+    		
+    		// if bullet trees, make scout
+    		if(trees.getBulletTrees().size() > 0){
+    			lumberOrder = 0;
+    			scoutOrder = 1;
+    		}
     	}
 
     	Map<Codes, Integer> orders = new HashMap<Codes, Integer>();
