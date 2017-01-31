@@ -500,7 +500,7 @@ public abstract class AbstractBot {
     }
     
     public float[] gradientFromEdges(float[] gradient){
-    	MapLocation myLoc = rc.getLocation(), loc;
+    	MapLocation myLoc = rc.getLocation(), loc = null;
     	float strength = -100f, minDist = 10000;
     	float myX = myLoc.x, myY = myLoc.y;
 
@@ -520,7 +520,7 @@ public abstract class AbstractBot {
     		loc = new MapLocation(myX, bottomEdge);
     		minDist = myY - bottomEdge;
     	}
-    	if (minDist < 10000)
+    	if (loc != null)
     		gradient = this.updateGradient(gradient, myLoc, loc, strength);
     	return gradient;
     }
