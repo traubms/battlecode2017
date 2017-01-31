@@ -38,6 +38,7 @@ public class Gardener extends AbstractBot {
 		    findHome();
 	    }
 	    followBuildCommands();
+	    radio.reportEnemies(bots);
 	}
 
 	/** Checks if tree can be planted in a direction and plants there 

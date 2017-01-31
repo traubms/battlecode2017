@@ -33,29 +33,6 @@ public class Scout extends AbstractBot {
         	moveTowardsOrWander(goal);
         radio.reportEnemies(bots);
         attack();
-
-        /*
-		//switch between different scout behaviors (channel 5 is the SCOUT_MODE channel used to tell the Scout which behavior to enact)
-		int mode = radio.listen(Channels.SCOUT_MODE);
-		System.out.println(mode);
-		switch(mode) {
-			case 17:
-				Attack_Mode();
-				break;
-			case 19:
-				Harvest_Mode();
-				break;
-			case 23:
-				Defend_Mode();
-				break;
-			case 27:
-				Recon_Mode();
-				break;
-
-			default: //default behavior - scout mode
-				Recon_Mode();
-		}
-         */
     }
 	
 	public boolean wander() throws GameActionException{

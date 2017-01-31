@@ -25,6 +25,7 @@ public class Lumberjack extends AbstractBot {
 			if(!sOrC)
 				moveTowardsOrWander(nearestEnemyBotOrTreeOrNeutralTree());
 		}
+		radio.reportEnemies(bots);
     }
 	
 	public void strike() throws GameActionException{
