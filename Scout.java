@@ -13,10 +13,12 @@ import javax.xml.stream.Location;
 public class Scout extends AbstractBot {
 
 	Direction heading;
+	MapLocation goal;
 	
 	public Scout(RobotController rc) throws GameActionException {
 		super(rc);
 		heading = BotUtils.randomDirection();
+		goal = null;
 	}
 	
 	public void run() throws GameActionException {
@@ -26,13 +28,25 @@ public class Scout extends AbstractBot {
         dodge();
         shake();
         hideOnTree();
-        MapLocation goal = nearestEnemyBotOrTreeOrBulletTree();
-        if (goal == null)
-            wander();
-        else
-        	moveTowardsOrWander(goal);
+        if (goal == null) { 
+            goal = nearestEnemyBotOrTreeOrBulletTree();
+        } 
+        moveTowardsOrWander(goal);
+        System.out.println(goal);
+        System.out.println(heading);
+        	
         radio.reportEnemies(bots);
         attack();
+    }
+	
+	public void moveTowardsOrWander(MapLocation goal, float tol) throws GameActionException{
+    	if (goal == null) {
+			wander();
+		} else if(!rc.getLocation().isWithinDistance(goal, tol)){
+			this.moveTo(goal);
+		} else {
+			this.goal = null;
+		}
     }
 	
 	public boolean wander() throws GameActionException{
