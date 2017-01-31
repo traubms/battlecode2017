@@ -46,9 +46,13 @@ public class Archon extends AbstractBot {
         	updateRollCall();
     		makeBuildOrders(); //build robots
     		decideSwarmLocation();
-    	} else 
+        	followBuildOrders();
+    	} else {
+    		if (rc.getRoundNum() > 10)
+    			followBuildOrders();
     		checkIfIAmHead();
-    	followBuildOrders();
+    	}
+    	
     }
     
     /*
@@ -78,10 +82,11 @@ public class Archon extends AbstractBot {
 		gardenerOrder = 0;
 		if(gardeners == 0 && soldiers == 0) { //round 1
 			gardenerOrder = 1;
-			soldiers = 1;
-		} else if (gardeners == 1 && soldiers == 0) { //make soldier first
+			soldierOrder = 1;
+		} else if (gardeners == 1 && soldiers <2) { //make soldier first
 			gardenerOrder = 0;
-			soldiers = 1;
+			soldierOrder = 1;
+			treeOrder = 0;
 		} else if (gardeners > 0 && treeCount == 0 && round < 50) { //make trees
 			gardenerOrder = 0;
     	} else { // rest of game
