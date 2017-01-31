@@ -69,6 +69,7 @@ public class Archon extends AbstractBot {
 		int lumberOrder=0, treeOrder=0, scoutOrder=0, tankOrder=0, soldierOrder=0, gardenerOrder=0;
 		int gardeners = rollCall.get(RobotType.GARDENER);
 		int soldiers = rollCall.get(RobotType.SOLDIER);
+		int lumbers = rollCall.get(RobotType.LUMBERJACK);
 		int treeCount = radio.getTreeCounts();
 		float gardenerProb, soldierProb;
 		int round = rc.getRoundNum();
@@ -107,7 +108,7 @@ public class Archon extends AbstractBot {
     		// soldiers make if enemies detected 
     		soldierOrder = bots.getBotCounts(team.opponent());
     		scoutOrder = (int) (Math.random() + .03);
-    		if (soldierOrder == 0) // if being attacked, don't make lumber
+    		if (soldierOrder == 0 && (round < 500 || lumbers == 0)) // if being attacked, don't make lumber
     			lumberOrder = (int) trees.getTreeCounts(Team.NEUTRAL) / 2;
     		if (soldiers < gardeners) 
     			soldierOrder = Math.max(gardeners - soldiers, soldierOrder);
