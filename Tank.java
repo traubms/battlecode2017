@@ -185,7 +185,7 @@ public class Tank extends AbstractBot {
 			}
 			if (count >= 6) break;
 		}
-		return false;
+		return null;
 	}
 }
 
