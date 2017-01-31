@@ -115,7 +115,7 @@ public class Archon extends AbstractBot {
     		soldierOrder += (int) (Math.random() + .3);
     		
     		// if bullet trees, make scout
-    		if(trees.getBulletTrees().size() > 0){
+    		if(trees.getBulletTrees().size() > 0 && rollCall.get(RobotType.SCOUT) == 0){
     			lumberOrder = 0;
     			scoutOrder = 1;
     		}
@@ -133,7 +133,6 @@ public class Archon extends AbstractBot {
     
     public void decideSwarmLocation() throws GameActionException {
     	int round = rc.getRoundNum() ;
-    	boolean bumrush;
 
 		// Pick destination
 		boolean march;
