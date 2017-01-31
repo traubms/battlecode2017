@@ -500,21 +500,34 @@ public abstract class AbstractBot {
     }
     
     public float[] gradientFromEdges(float[] gradient){
-    	MapLocation myLoc = rc.getLocation();
+    	MapLocation myLoc = rc.getLocation(), loc;
+    	float strength = -100f, minDist = 10000;
     	float myX = myLoc.x, myY = myLoc.y;
-    	if (leftEdgeFound)
-    		gradient = this.updateGradient(gradient, myLoc, new MapLocation(myX, leftEdge), .5f);
-    	if (rightEdgeFound)
-    		gradient = this.updateGradient(gradient, myLoc, new MapLocation(myX, rightEdge), .5f);
-    	if (topEdgeFound)
-    		gradient = this.updateGradient(gradient, myLoc, new MapLocation(topEdge, myY), .5f);
-    	if (bottomEdgeFound)
-    		gradient = this.updateGradient(gradient, myLoc, new MapLocation(bottomEdge, myY), .5f);
+    	if ()
+    	if (leftEdgeFound && myX - leftEdge > minDist){
+    		loc = new MapLocation(leftEdge, myY);
+    		minDist = myX - leftEdge;
+    	}
+    	if (rightEdgeFound && rightEdge - myX > minDist){
+    		loc = new MapLocation(rightEdge, myY);
+    		minDist = rightEdge - myX;
+    	}
+    	if (topEdgeFound && topEdge - myY > minDist){
+    		loc = new MapLocation(myX, topEdge);
+    		minDist = topEdge - myY;
+    	}
+    	if (bottomEdgeFound && myY - bottomEdge > minDist){
+    		loc = new MapLocation(myX, bottomEdge);
+    		minDist = myY - bottomEdge;
+    	}
+    	if (minDist < 10000)
+    		gradient = this.updateGradient(gradient, myLoc, loc, strength);
     	return gradient;
     }
     
     public void updateEdges() throws GameActionException{
     	float val, dist = rc.getType().sensorRadius;
+    	boolean outside;
     	MapLocation myLoc = rc.getLocation(), checkLoc;
     	if (!leftEdgeFound) {
     		val = radio.listen(Channels.LEFT_EDGE);
@@ -523,7 +536,14 @@ public abstract class AbstractBot {
     			leftEdgeFound = true;
     		} else {
     			checkLoc = myLoc.add(Direction.WEST, dist);
-    			if (!rc.onTheMap(checkLoc)){
+    			outside = false;
+    			while (!rc.onTheMap(checkLoc)){
+    				dist /= 2;
+    				checkLoc = myLoc.add(Direction.WEST, dist);
+    				outside = true;
+    			}
+    			if(outside){
+    				checkLoc = myLoc.add(Direction.WEST, dist * 2);
     				leftEdge = checkLoc.x;
     				leftEdgeFound = true;
     				radio.reportEdge(Channels.LEFT_EDGE, leftEdge);
@@ -537,7 +557,14 @@ public abstract class AbstractBot {
     			rightEdgeFound = true;
     		} else {
     			checkLoc = myLoc.add(Direction.EAST, dist);
-    			if (!rc.onTheMap(checkLoc)){
+    			outside = false;
+    			while (!rc.onTheMap(checkLoc)){
+    				dist /= 2;
+    				checkLoc = myLoc.add(Direction.EAST, dist);
+    				outside = true;
+    			}
+    			if(outside){
+    				checkLoc = myLoc.add(Direction.EAST, dist * 2);
     				rightEdge = checkLoc.x;
     				rightEdgeFound = true;
     				radio.reportEdge(Channels.RIGHT_EDGE, rightEdge);
@@ -551,7 +578,14 @@ public abstract class AbstractBot {
     			topEdgeFound = true;
     		} else {
     			checkLoc = myLoc.add(Direction.NORTH, dist);
-    			if (!rc.onTheMap(checkLoc)){
+    			outside = false;
+    			while (!rc.onTheMap(checkLoc)){
+    				dist /= 2;
+    				checkLoc = myLoc.add(Direction.NORTH, dist);
+    				outside = true;
+    			}
+    			if(outside){
+    				checkLoc = myLoc.add(Direction.NORTH, dist * 2);
     				topEdge = checkLoc.y;
     				topEdgeFound = true;
     				radio.reportEdge(Channels.TOP_EDGE, topEdge);
@@ -566,7 +600,14 @@ public abstract class AbstractBot {
     			bottomEdgeFound = true;
     		} else {
     			checkLoc = myLoc.add(Direction.SOUTH, dist);
-    			if (!rc.onTheMap(checkLoc)){
+    			outside = false;
+    			while (!rc.onTheMap(checkLoc)){
+    				dist /= 2;
+    				checkLoc = myLoc.add(Direction.SOUTH, dist);
+    				outside = true;
+    			}
+    			if(outside){
+    				checkLoc = myLoc.add(Direction.SOUTH, dist * 2);
     				bottomEdge = checkLoc.y;
     				bottomEdgeFound = true;
     				radio.reportEdge(Channels.BOTTOM_EDGE, bottomEdge);

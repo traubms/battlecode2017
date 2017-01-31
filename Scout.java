@@ -34,7 +34,6 @@ public class Scout extends AbstractBot {
         moveTowardsOrWander(goal);
         System.out.println(goal);
         System.out.println(heading);
-        	
         radio.reportEnemies(bots);
         updateEdges();
         attack();

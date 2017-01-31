@@ -96,6 +96,7 @@ public class Gardener extends AbstractBot {
 	    float minDist = 10000, minArchDist=1000, dist, strength;
 	    float[] gradient = new float[2];
 	    gradient = this.gradientFromEdges(gradient);
+	    System.out.println("" + topEdge  + ", " + rightEdge + ", " + bottomEdge + ",  " + leftEdge);
 	    MapLocation myLoc = rc.getLocation();
 	    for(RobotInfo bot: bots.getBots(team)){
 	    	if (bot.type == RobotType.GARDENER || bot.type == RobotType.ARCHON){
