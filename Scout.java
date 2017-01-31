@@ -36,6 +36,7 @@ public class Scout extends AbstractBot {
         System.out.println(heading);
         	
         radio.reportEnemies(bots);
+        updateEdges();
         attack();
     }
 	

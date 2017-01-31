@@ -39,6 +39,7 @@ public class Gardener extends AbstractBot {
 	    }
 	    followBuildCommands();
 	    radio.reportEnemies(bots);
+	    updateEdges();
 	}
 
 	/** Checks if tree can be planted in a direction and plants there 
@@ -94,6 +95,7 @@ public class Gardener extends AbstractBot {
     	int count = 0;
 	    float minDist = 10000, minArchDist=1000, dist, strength;
 	    float[] gradient = new float[2];
+	    gradient = this.gradientFromEdges(gradient);
 	    MapLocation myLoc = rc.getLocation();
 	    for(RobotInfo bot: bots.getBots(team)){
 	    	if (bot.type == RobotType.GARDENER || bot.type == RobotType.ARCHON){

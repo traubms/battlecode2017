@@ -23,5 +23,6 @@ public class Soldier extends AbstractBot {
 		} else {
 			moveTowardsOrWander(this.nearestEnemyBotOrTree());
 		}
+		updateEdges();
 	}
 }

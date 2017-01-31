@@ -29,6 +29,15 @@ public abstract class AbstractBot {
 	protected Radio radio;
 	protected boolean swarm;
 	
+	protected float bottomEdge;
+	protected float topEdge;
+	protected float leftEdge;
+	protected float rightEdge;
+	protected boolean bottomEdgeFound;
+	protected boolean topEdgeFound;
+	protected boolean leftEdgeFound;
+	protected boolean rightEdgeFound;
+	
 	public AbstractBot(RobotController rc){
 		this.rc = rc;
 		this.team = rc.getTeam();
@@ -488,6 +497,83 @@ public abstract class AbstractBot {
         float perpendicularDist = (float) Math.abs(distToRobot * Math.sin(theta));
 
         return (perpendicularDist <= rc.getType().bodyRadius);
+    }
+    
+    public float[] gradientFromEdges(float[] gradient){
+    	MapLocation myLoc = rc.getLocation();
+    	float myX = myLoc.x, myY = myLoc.y;
+    	if (leftEdgeFound)
+    		gradient = this.updateGradient(gradient, myLoc, new MapLocation(myX, leftEdge), .5f);
+    	if (rightEdgeFound)
+    		gradient = this.updateGradient(gradient, myLoc, new MapLocation(myX, rightEdge), .5f);
+    	if (topEdgeFound)
+    		gradient = this.updateGradient(gradient, myLoc, new MapLocation(topEdge, myY), .5f);
+    	if (bottomEdgeFound)
+    		gradient = this.updateGradient(gradient, myLoc, new MapLocation(bottomEdge, myY), .5f);
+    	return gradient;
+    }
+    
+    public void updateEdges() throws GameActionException{
+    	float val, dist = rc.getType().sensorRadius;
+    	MapLocation myLoc = rc.getLocation(), checkLoc;
+    	if (!leftEdgeFound) {
+    		val = radio.listen(Channels.LEFT_EDGE);
+    		if(val != 0) {
+    			leftEdge = val;
+    			leftEdgeFound = true;
+    		} else {
+    			checkLoc = myLoc.add(Direction.WEST, dist);
+    			if (!rc.onTheMap(checkLoc)){
+    				leftEdge = checkLoc.x;
+    				leftEdgeFound = true;
+    				radio.reportEdge(Channels.LEFT_EDGE, leftEdge);
+    			}
+    		}
+    	}
+    	if (!rightEdgeFound) {
+    		val = radio.listen(Channels.RIGHT_EDGE);
+    		if(val != 0) {
+    			rightEdge = val;
+    			rightEdgeFound = true;
+    		} else {
+    			checkLoc = myLoc.add(Direction.EAST, dist);
+    			if (!rc.onTheMap(checkLoc)){
+    				rightEdge = checkLoc.x;
+    				rightEdgeFound = true;
+    				radio.reportEdge(Channels.RIGHT_EDGE, rightEdge);
+    			}
+    		}
+    	}
+    	if (!topEdgeFound) {
+    		val = radio.listen(Channels.TOP_EDGE);
+    		if(val != 0) {
+    			topEdge = val;
+    			topEdgeFound = true;
+    		} else {
+    			checkLoc = myLoc.add(Direction.NORTH, dist);
+    			if (!rc.onTheMap(checkLoc)){
+    				topEdge = checkLoc.y;
+    				topEdgeFound = true;
+    				radio.reportEdge(Channels.TOP_EDGE, topEdge);
+    			}
+    		}
+    		
+    	}
+    	if (!bottomEdgeFound) {
+    		val = radio.listen(Channels.BOTTOM_EDGE);
+    		if(val != 0) {
+    			bottomEdge = val;
+    			bottomEdgeFound = true;
+    		} else {
+    			checkLoc = myLoc.add(Direction.SOUTH, dist);
+    			if (!rc.onTheMap(checkLoc)){
+    				bottomEdge = checkLoc.y;
+    				bottomEdgeFound = true;
+    				radio.reportEdge(Channels.BOTTOM_EDGE, bottomEdge);
+    			}
+    		}
+    		
+    	}
     }
 
     /**

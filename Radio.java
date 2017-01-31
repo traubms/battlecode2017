@@ -192,4 +192,10 @@ public class Radio {
 		this.broadcast(chan, message + 1);
 	}
 
+	public void reportEdge(Channels chan, float val) throws GameActionException {
+		float message = listen(chan);
+		if (message == 0 || val > message)
+			this.broadcast(chan, val);
+	}
+
 }

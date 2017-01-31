@@ -21,7 +21,11 @@ public enum Channels {
 	LUMBERJACK_COUNT(18),
 	TANK_COUNT(19), 
 	GARDENER_COUNT(20),
-	ARCHON_COUNT(21);
+	ARCHON_COUNT(21),
+	LEFT_EDGE(22),
+	RIGHT_EDGE(23),
+	BOTTOM_EDGE(24),
+	TOP_EDGE(25);
 	
 	private int value;
 	
