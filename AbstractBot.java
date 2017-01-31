@@ -212,7 +212,7 @@ public abstract class AbstractBot {
         float singleRange = (float) 5 + rc.getType().bodyRadius;
 
         //if swarming the enemy, just go ahead and blast away.
-        if (inEnemyTerritory())  {
+        if (true)  { //TODO: restore inEnemyTerritory
             pentadRange = pentadRange + 5;
             triadRange = triadRange + 4;
             singleRange = singleRange + 3;
