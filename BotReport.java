@@ -4,10 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import battlecode.common.MapLocation;
-import battlecode.common.RobotController;
-import battlecode.common.RobotInfo;
-import battlecode.common.Team;
+import battlecode.common.*;
 import battlecode.common.RobotInfo;
 
 public class BotReport {
@@ -41,7 +38,14 @@ public class BotReport {
 		}
 		
 	}
-	
+
+	public boolean canSenseAnArchon(Team t) {
+		for (RobotInfo ri: this.getBots(t)) {
+			if (ri.getType().equals(RobotType.ARCHON)) return true;
+		}
+		return false;
+	}
+
 	public RobotInfo getWeakestbot(Team t){
 		return this.lowestHealthBot.get(t);
 	}

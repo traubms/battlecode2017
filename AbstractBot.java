@@ -157,6 +157,7 @@ public abstract class AbstractBot {
         return(tryMove(towards.rotateRightDegrees(90)) || tryMove(towards.rotateLeftDegrees(90)));
     }
 
+
     /**
      * Attacks by shooting either a single, triad, or pentad shot.
      * Only called by soldiers, scouts, and tanks.
@@ -186,7 +187,13 @@ public abstract class AbstractBot {
             return false;
         } else {
         	Direction directionToTarget = rc.getLocation().directionTo(target.getLocation());
-            if (tryMove(directionToTarget));
+        	//back up if swarming and enemy is getting close (and not getting close to a friendly archon), else move towards
+            if (inEnemyTerritory() && target.isRobot() && !(closestEnemy.getType().equals(RobotType.ARCHON)
+                    || closestEnemy.getType().equals(RobotType.GARDENER))
+                    && rc.getLocation().distanceTo(target.getLocation()) < (5 + rc.getType().bodyRadius)) {
+                tryMove(directionToTarget.rotateLeftDegrees(180));
+            } else tryMove(directionToTarget);
+
             fireShot(target); // SHOOT
             return true;
         }
@@ -200,9 +207,17 @@ public abstract class AbstractBot {
 
         //setting appropriate ranges based on type of enemy to reduce wasted bullets and friendly fire
         //tweak the hardcoded numbers as appropriate
-        float pentadRange = (float) 1 + rc.getType().bodyRadius;
-        float triadRange = (float) 1.574 + rc.getType().bodyRadius;
-        float singleRange = (float) 6 + rc.getType().bodyRadius;
+        float pentadRange = (float) 2 + rc.getType().bodyRadius;
+        float triadRange = (float) 3 + rc.getType().bodyRadius;
+        float singleRange = (float) 5 + rc.getType().bodyRadius;
+
+        //if swarming the enemy, just go ahead and blast away.
+        if (inEnemyTerritory())  {
+            pentadRange = pentadRange + 5;
+            triadRange = triadRange + 4;
+            singleRange = singleRange + 3;
+        }
+
         if (target.isRobot()){
 	        if (((RobotInfo)target).getType().equals(RobotType.ARCHON) || ((RobotInfo)target).getType().equals(RobotType.TANK)) {
 	            pentadRange = pentadRange + (float) 1;
@@ -236,12 +251,12 @@ public abstract class AbstractBot {
         else if (nearestBadTree== null)
         	dontWorryAboutTrees = false;
         else 
-        	dontWorryAboutTrees = myLocation.distanceTo(nearestBadTree.location) < (float) 1.5 && directionDifference < (float) 50;
+        	dontWorryAboutTrees = myLocation.distanceTo(nearestBadTree.location) < (float) 2.5 && directionDifference < (float) 50;
         
         boolean single = rc.canFireSingleShot();
         boolean triad = rc.canFireTriadShot();
         boolean pentad = rc.canFirePentadShot();
-
+        /*
         //hopefully further prevent friendly fire
         List<RobotInfo> FBots = bots.getBots(team);
         int count = 0;
@@ -251,7 +266,7 @@ public abstract class AbstractBot {
             count++;
             distanceToFriendly = myLocation.distanceTo(fb.location);
             degreesBetweenFriendly = directionToShoot.degreesBetween(myLocation.directionTo(fb.location));
-            if (distanceToFriendly < distToEnemy && degreesBetweenFriendly < 50) {
+            if (distanceToFriendly < distToEnemy && degreesBetweenFriendly < 40) {
                 single = false;
                 triad = false;
                 pentad = false;
@@ -259,6 +274,7 @@ public abstract class AbstractBot {
             }
             if (count >= 6) break;
         }
+        */
 
 
         if (single || triad || pentad){
@@ -334,7 +350,7 @@ public abstract class AbstractBot {
 	    float[] gradient = initializeGradient();
 	    MapLocation myLoc = rc.getLocation();
 	    float dist;
-	    boolean canAttack;
+//	    boolean canAttack;
 	    for(RobotInfo bot: bots.getBots(team.opponent())){
 	    	dist = myLoc.distanceTo(bot.location);
 //	    	canAttack = bot.type == RobotType.SCOUT || bot.type == RobotType.SOLDIER || bot.type == RobotType.TANK || bot.type == RobotType.LUMBERJACK;
@@ -373,7 +389,12 @@ public abstract class AbstractBot {
             }
         }
     }
-    
+
+    public boolean inEnemyTerritory() throws GameActionException {
+        return rc.getLocation().distanceTo(rc.getInitialArchonLocations(team.opponent())[0])
+                < rc.getLocation().distanceTo(rc.getInitialArchonLocations(team)[0]);
+    }
+
     public boolean shake() throws GameActionException {
     	ArrayList<TreeInfo> bullets = trees.getBulletTrees();
     	if (bullets.size() > 0 && rc.canShake(bullets.get(0).ID)){
