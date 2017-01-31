@@ -503,7 +503,7 @@ public abstract class AbstractBot {
     	MapLocation myLoc = rc.getLocation(), loc;
     	float strength = -100f, minDist = 10000;
     	float myX = myLoc.x, myY = myLoc.y;
-    	if ()
+
     	if (leftEdgeFound && myX - leftEdge > minDist){
     		loc = new MapLocation(leftEdge, myY);
     		minDist = myX - leftEdge;
