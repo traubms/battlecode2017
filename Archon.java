@@ -40,7 +40,7 @@ public class Archon extends AbstractBot {
     	if (bots.getBotCounts(team.opponent()) > 0)
     		avoidEnemies();
     	else
-    		moveAvoidingGardeners();
+    		moveAvoidingGardeners(); //should already avoid gardeners?
     	updateTargets();
     	if (iAmHead) {
         	updateRollCall();
