@@ -133,30 +133,30 @@ public class Archon extends AbstractBot {
     
     public void decideSwarmLocation() throws GameActionException {
     	int round = rc.getRoundNum() ;
-    	
+    	boolean bumrush;
+
 		// Pick destination
 		boolean march;
     	MapLocation target = null;
+
+
+
     	if (bots.getBotCounts(team.opponent()) > 0) { // Defend archon
     		march = true;
     		target = rc.getLocation();
-    	} else if (enemyTargets.size() > 0) { // only if target available
+    	} else if (enemyTargets.size() > 0 && (round >= 500 || round < 300)) { // only if target available
     		// march schedule 
-    		if (round >= 500) 
-	    		march = true;
-    		else
-        		march = false;
+    		march = true;
     		
     		// go out to enemy or come back
-    		if(march){
-	    		if (enemyTargets.size() > 0) //&& round % 300 < 100) 
-	    			target = this.closestEnemyTarget();
-	    		else
-	    			target = rc.getLocation();
-    		}
-    	} else 
-    		march = false;
-    	
+    		if(march) {
+				if (enemyTargets.size() > 0) //&& round % 300 < 100)
+					target = this.closestEnemyTarget();
+			}
+		} else {
+			march = false;
+    	}
+
     	// Send out location
     	if (march) {
     		radio.setSwarmLocation(target);
