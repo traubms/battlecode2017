@@ -120,10 +120,31 @@ public class Lumberjack extends AbstractBot {
 		if (rc.canChop(id)){
 			rc.chop(id);
 		}
-
 	}
 
-	
-	
-	
+	public boolean moveAvoidingGardeners() throws GameActionException{
+		int count = 0;
+		float[] gradient = initializeGradient();
+		MapLocation myLoc = rc.getLocation();
+		for(RobotInfo bot: bots.getBots(team)){
+			if (bot.type == RobotType.ARCHON){
+				gradient = updateGradient(gradient, myLoc, bot.location, 1);
+				count++;
+			} else if((bot.type == RobotType.GARDENER || bot.type == RobotType.SCOUT) && myLoc.distanceTo(bot.location) < 5){
+				gradient = updateGradient(gradient, myLoc, bot.location, 1);
+				count++;
+			}
+		}
+
+		//change from other units: wander towards enemy archon
+		updateGradient(gradient, myLoc, rc.getInitialArchonLocations(team.opponent())[0], -20);
+
+		if(count > 0)
+			return followGradient(gradient);
+		else {
+			//also the direction is direction of enemy archon
+			Direction dir = rc.getLocation().directionTo(rc.getInitialArchonLocations(team.opponent())[0]);
+			return tryMove(dir);
+		}
+	}
 }

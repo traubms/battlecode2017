@@ -458,15 +458,13 @@ public abstract class AbstractBot {
     	} 
     	return null; // no enemy or neutral tree
     }
-    
+    /**with preference for the furthest bullet tree*/
     public MapLocation nearestEnemyBotOrTreeOrBulletTree(){
-    	MapLocation enemy = nearestEnemyBotOrTree();
-    	if (enemy == null){
-    		ArrayList<TreeInfo> bulletTrees = trees.getBulletTrees();
-    		if(bulletTrees.size() > 0)
-    			return bulletTrees.get(0).location;
-    	} 
-    	return null; // no enemy or bullet tree
+        ArrayList<TreeInfo> bulletTrees = trees.getBulletTrees();
+        if(bulletTrees.size() > 0) {
+            return bulletTrees.get(bulletTrees.size()-1).location;
+        }
+        else return nearestEnemyBotOrTree(); //could be null
     }
     	
     public boolean willCollideWithMe(BulletInfo bullet) {
